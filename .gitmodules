@@ -1,0 +1,3 @@
+[submodule "simbricks"]
+	path = sim/simbricks
+	url = https://github.com/yiliangw/simbricks.git
