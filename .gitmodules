@@ -1,3 +1,6 @@
 [submodule "simbricks"]
 	path = sim/simbricks
 	url = https://github.com/yiliangw/simbricks.git
+[submodule "apps/spark"]
+	path = apps/spark
+	url = https://github.com/yiliangw/spark.git
