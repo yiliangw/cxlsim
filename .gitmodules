@@ -4,3 +4,6 @@
 [submodule "apps/spark"]
 	path = apps/spark
 	url = https://github.com/yiliangw/spark.git
+[submodule "apps/linux"]
+	path = apps/linux
+	url = https://github.com/yiliangw/linux.git
