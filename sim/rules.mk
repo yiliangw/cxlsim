@@ -1,5 +1,3 @@
-SIMBRICKS_DOCKER_IMAGE := simbricks/simbricks-build
-SIMBRICKS_DOCKER_NAME := baize_simbricks_build_
 
 simbricks_docker_exec := docker exec $(SIMBRICKS_DOCKER_NAME) /bin/bash -c
 
@@ -9,17 +7,6 @@ exp_script := $(d)exps/simple_ping.py
 
 
 SIMBRICKS_OPTIONS := --repo $(simbricks_dir) --workdir $(o) --outdir $(o) --cpdir $(o) --runs 1 --verbose --force
-
-.PHONY: pull-simbricks-docker start-simbricks-docker stop-simbricks-docker
-
-pull-simbricks-docker:
-	docker pull $(SIMBRICKS_DOCKER_IMAGE)	
-
-start-simbricks-docker:
-	$(call start_container,$(SIMBRICKS_DOCKER_NAME),$(SIMBRICKS_DOCKER_IMAGE))
-
-stop-simbricks-docker:
-	$(call stop_container,$(SIMBRICKS_DOCKER_NAME))
 
 .PHONY: build-simbricks
 build-simbricks: pull-simbricks-docker
