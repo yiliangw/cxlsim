@@ -23,7 +23,6 @@ CLEAN_ALL :=
 EXTERNAL_CLEAN_ALL := 
 
 define include_rules
-	$(info inside include_rules $(1))
 	$(eval makefile_stack := $(1) $(makefile_stack))
 	$(eval $(call update_current_makefile))
 	$(eval include $(1))
@@ -31,12 +30,15 @@ define include_rules
 	$(eval $(call update_current_makefile))
 endef
 
+.PHONY: help
+help:
+	@echo "Hello Baize :)"
+
 $(eval $(call include_rules,$(d)docker/rules.mk))
 $(eval $(call include_rules,$(d)sim/rules.mk))
 
 .PHONY: all
 all: $(ALL_ALL)
-	@echo "Hello Baize :)"
 
 .PHONY: clean
 clean: 

@@ -1,10 +1,8 @@
-
 simbricks_docker_exec := docker exec $(SIMBRICKS_DOCKER_NAME) /bin/bash -c
 
 simbricks_dir := $(d)simbricks
 simbricks_run_script := $(simbricks_dir)/experiments/run.py
 exp_script := $(d)exps/simple_ping.py
-
 
 SIMBRICKS_OPTIONS := --repo $(simbricks_dir) --workdir $(o) --outdir $(o) --cpdir $(o) --runs 1 --verbose --force
 
@@ -22,3 +20,5 @@ run-exp:
 	make start-simbricks-docker
 	$(simbricks_docker_exec) "python $(simbricks_run_script) $(SIMBRICKS_OPTIONS) $(exp_script)" 
 	make stop-simbricks-docker
+
+$(eval $(call include_rules,$(d)images/rules.mk))

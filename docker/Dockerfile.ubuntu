@@ -14,4 +14,4 @@ RUN apt-get update && apt-get install -y \
     libpci-dev libiberty-dev autoconf llvm bc bear 
 
 # Other utilities
-RUN apt-get install -y cloud-image-utils 
+RUN apt-get install -y cloud-image-utils qemu-system-x86 
