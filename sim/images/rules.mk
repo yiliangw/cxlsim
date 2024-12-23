@@ -1,67 +1,34 @@
 PACKER_VERSION := 1.9.0
-
-UBUNTU_IMAGE_URL := https://cloud-images.ubuntu.com/daily/server/jammy/20241217/jammy-server-cloudimg-amd64.img
-UBUNTU_IMAGE_CKSUM_URL := https://cloud-images.ubuntu.com/daily/server/jammy/20241217/SHA256SUMS
-UBUNTU_IMAGE_SZ_MB := 256000
+PACKER_ZIP_URL := https://releases.hashicorp.com/packer/$(PACKER_VERSION)/packer_$(PACKER_VERSION)_linux_amd64.zip
+DEVSTACK_ZIP_URL := https://github.com/openstack/devstack/archive/refs/heads/stable/2024.2.zip
 
 qemu := qemu-system-x86_64
 qemu_img := qemu-img
 
 packer := $(b)packer
+packer_zip := $(b)packer.zip
 packer_hcl := $(d)disk.pkr.hcl
 packer_cache_dir := $(b).packer_cache
 
-ubuntu_seed_img := $(o)ubuntu_seed.img
-ubuntu_disk_img := $(o)ubuntu.qcow2
-ubuntu_input_dir := $(b)ubuntu_input
-ubuntu_input_tar := $(ubuntu_input_dir).tar
-ubuntu_install_script := $(d)ubuntu/install.sh
+devstack_dir := $(b)devstack/
+devstack_zip := $(b)devstack.zip
 
-ubuntu_test_disk_img := $(o)ubuntu_test.qcow2
-
-$(ubuntu_disk_img): $(eval packer_output_dir := $(b)packer_output.ubuntu)
-$(ubuntu_disk_img): $(packer_hcl) $(packer) $(ubuntu_seed_img) $(ubuntu_input_tar)
-	rm -rf $(packer_output_dir)
-	PACKER_CACHE_DIR=$(packer_cache_dir) \
-	$(packer) build \
-	-var "cpus=`nproc`" \
-	-var "disk_sz=$(UBUNTU_IMAGE_SZ_MB)" \
-	-var "iso_url=$(UBUNTU_IMAGE_URL)" \
-	-var "iso_cksum_url=$(UBUNTU_IMAGE_CKSUM_URL)" \
-	-var "out_dir="$(packer_output_dir) \
-	-var "out_name=$(@F)" \
-	-var "seedimg=$(ubuntu_seed_img)" \
-	-var "input_tar=$(ubuntu_input_tar)" \
-	-var "install_script=$(ubuntu_install_script)" \
-	$(packer_hcl)
+$(packer_zip):
 	mkdir -p $(@D)
-	mv $(packer_output_dir)/$(@F) $@
+	wget -O $@ $(PACKER_ZIP_URL)
 
-$(packer): packer_zip := $(b)packer_$(PACKER_VERSION)_linux_amd64.zip
-$(packer):
-	mkdir -p $(dir $(packer_zip))
-	wget -O $(packer_zip) https://releases.hashicorp.com/packer/$(PACKER_VERSION)/packer_$(PACKER_VERSION)_linux_amd64.zip
+$(packer): $(packer_zip)
+	mkdir -p $(@D)
 	unzip -o -d $(@D) $(packer_zip)
 	touch $@
 
-$(ubuntu_seed_img): $(d)ubuntu/user-data $(d)ubuntu/meta-data
+$(devstack_zip):
 	mkdir -p $(@D)
-	rm -f $@
-	cloud-localds $@ $^
+	wget -O $@ $(DEVSTACK_ZIP_URL)
 
-$(ubuntu_input_tar): $(d)guestinit.sh   
-	rm -rf $(ubuntu_input_dir)
-	mkdir -p $(ubuntu_input_dir)
-	cp $^ $(ubuntu_input_dir)
-	tar -cf $@ -C $(ubuntu_input_dir) .
+$(devstack_dir): $(devstack_zip)
+	mkdir -p $(@D)
+	unzip -o -d $(@D) $(devstack_zip)
+	mv $(@D)/devstack-* $@
 
-$(ubuntu_test_disk_img): $(ubuntu_disk_img)
-	$(qemu_img) create -f qcow2 -F qcow2 -b $(shell realpath --relative-to=$(dir $@) $<) $@
-
-.PHONY: qemu-ubuntu-test  
-qemu-ubuntu-test: $(ubuntu_test_disk_img)
-	$(qemu) -machine q35,accel=kvm -cpu host -smp 4 -m 4G \
-	-drive file=$<,media=disk,format=qcow2,if=ide,index=0 \
-	-device virtio-net-pci,netdev=net0 -netdev user,id=net0 \
-	-boot c \
-	-display none -serial mon:stdio 
+$(eval $(call include_rules,$(d)ubuntu/rules.mk))

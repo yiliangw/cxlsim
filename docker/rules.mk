@@ -4,9 +4,12 @@ DOCKER_WORKDIR := /workspace/$(notdir $(shell pwd))
 SIMBRICKS_DOCKER_IMAGE := simbricks/simbricks-build
 SIMBRICKS_DOCKER_NAME := baize_simbricks_build_
 
+simbricks_dir ?= $(project_root)sim/simbricks/
+simbricks_dockerfile := $(simbricks_dir)docker/Dockerfile.buildenv
+
 UBUNTU_DOCKER_FILE := $(d)Dockerfile.ubuntu
 UBUNTU_DOCKER_IMAGE := baize-ubuntu
-UBUNTU_DOCKER_NAME := baize_ubuntu_   
+UBUNTU_DOCKER_NAME := baize_ubuntu_ 
 
 define start_container # $(1) - container name, $(2) - image name, $(3) - detach
 	$(call stop_container,$(1))
@@ -29,10 +32,13 @@ define stop_container
 	docker rm -f $(1)
 endef
 
-.PHONY: pull-simbricks-docker start-simbricks-docker stop-simbricks-docker run-simbricks-docker
+.PHONY: docker-images
+build-docker-images: build-simbricks-docker build-ubuntu-docker
 
-pull-simbricks-docker:
-	docker pull $(SIMBRICKS_DOCKER_IMAGE)	
+.PHONY: build-simbricks-docker start-simbricks-docker stop-simbricks-docker run-simbricks-docker
+
+build-simbricks-docker: $(simbricks_dockerfile)
+	docker build -f $< -t $(SIMBRICKS_DOCKER_IMAGE) $(dir $<)	
 
 start-simbricks-docker:
 	$(call start_container,$(SIMBRICKS_DOCKER_NAME),$(SIMBRICKS_DOCKER_IMAGE),1)

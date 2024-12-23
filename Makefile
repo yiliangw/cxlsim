@@ -11,6 +11,8 @@ o := $(O)
 # build directory
 b := $(o)build/
 
+project_root := $(d)
+
 define update_current_makefile
 	$(eval current_makefile := $(firstword $(makefile_stack)))
 	$(eval d := $(dir $(current_makefile)))

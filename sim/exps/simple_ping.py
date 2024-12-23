@@ -30,7 +30,10 @@ from simbricks.orchestration.experiments import Experiment
 from simbricks.orchestration.nodeconfig import (
     I40eLinuxNode, IdleHost, PingClient
 )
-from simbricks.orchestration.simulators import Gem5Host, I40eNIC, SwitchNet
+from simbricks.orchestration.simulators import QemuHost, I40eNIC, SwitchNet
+
+SYNC = False
+SYNC_PERIOD = 1000
 
 e = Experiment(name='simple_ping')
 e.checkpoint = True  # use checkpoint and restore to speed up simulation
@@ -39,7 +42,7 @@ e.checkpoint = True  # use checkpoint and restore to speed up simulation
 client_config = I40eLinuxNode()  # boot Linux with i40e NIC driver
 client_config.ip = '10.0.0.1'
 client_config.app = PingClient(server_ip='10.0.0.2')
-client = Gem5Host(client_config)
+client = QemuHost(client_config)
 client.name = 'client'
 client.wait = True  # wait for client simulator to finish execution
 e.add_host(client)
@@ -53,7 +56,7 @@ client.add_nic(client_nic)
 server_config = I40eLinuxNode()  # boot Linux with i40e NIC driver
 server_config.ip = '10.0.0.2'
 server_config.app = IdleHost()
-server = Gem5Host(server_config)
+server = QemuHost(server_config)
 server.name = 'server'
 e.add_host(server)
 
@@ -73,5 +76,22 @@ eth_latency = 500 * 10**3  # 500 us
 network.eth_latency = eth_latency
 client_nic.eth_latency = eth_latency
 server_nic.eth_latency = eth_latency
+
+# Synchronization
+for h in e.hosts:
+    h.sync_mode = 1 if SYNC else 0
+    h.sync_period = SYNC_PERIOD
+    h.pci_latency = SYNC_PERIOD
+
+for n in e.nics:
+    n.sync_mode = 1 if SYNC else 0
+    n.sync_period = SYNC_PERIOD
+    n.pci_latency = SYNC_PERIOD
+    n.eth_latency = SYNC_PERIOD
+
+for n in e.networks:
+    n.sync_mode = 1 if SYNC else 0
+    n.sync_period = SYNC_PERIOD
+    n.eth_latency = SYNC_PERIOD
 
 experiments = [e]
