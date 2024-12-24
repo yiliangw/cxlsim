@@ -13,18 +13,19 @@ packer_cache_dir := $(b).packer_cache
 devstack_dir := $(b)devstack/
 devstack_zip := $(b)devstack.zip
 
+.INTERMEDIATE: $(packer_zip) $(devstack_zip)
 $(packer_zip):
 	mkdir -p $(@D)
 	wget -O $@ $(PACKER_ZIP_URL)
+
+$(devstack_zip):
+	mkdir -p $(@D)
+	wget -O $@ $(DEVSTACK_ZIP_URL)
 
 $(packer): $(packer_zip)
 	mkdir -p $(@D)
 	unzip -o -d $(@D) $(packer_zip)
 	touch $@
-
-$(devstack_zip):
-	mkdir -p $(@D)
-	wget -O $@ $(DEVSTACK_ZIP_URL)
 
 $(devstack_dir): $(devstack_zip)
 	mkdir -p $(@D)

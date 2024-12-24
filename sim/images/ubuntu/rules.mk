@@ -11,9 +11,6 @@ ubuntu_input_dir := $(b)input/
 ubuntu_input_tar := $(ubuntu_input_dir).tar
 ubuntu_install_script := $(d)install.sh
 
-ubuntu_test_secondary_img := $(o)test_secondary.qcow2
-ubuntu_test_root_img := $(o)test_root.qcow2
-
 $(ubuntu_root_img): $(eval packer_output_dir := $(b)packer_output)
 $(ubuntu_root_img): $(packer_hcl) $(packer) $(ubuntu_seed_img) $(ubuntu_input_tar) $(ubuntu_install_script)
 	rm -rf $(packer_output_dir)
@@ -48,18 +45,19 @@ $(ubuntu_input_dir): $(devstack_dir)
 	mkdir -p $@
 	cp -r $(devstack_dir) $@
 
-$(ubuntu_test_root_img): $(ubuntu_root_img)
+.PRECIOUS: $(o)vm%_root.qcow2
+$(o)vm%_root.qcow2: $(ubuntu_root_img)
 	$(qemu_img) create -f qcow2 -F qcow2 -b $(shell realpath --relative-to=$(dir $@) $<) $@
 
-$(ubuntu_test_secondary_img): $(ubuntu_secondary_img)
+.PRECIOUS: $(o)vm%_secondary.qcow2
+$(o)vm%_secondary.qcow2: $(ubuntu_secondary_img)
 	$(qemu_img) create -f qcow2 -F qcow2 -b $(shell realpath --relative-to=$(dir $@) $<) $@
 
-.PHONY: qemu-ubuntu-test  
-qemu-ubuntu-test: $(ubuntu_test_root_img) $(ubuntu_test_secondary_img)
-	$(qemu) -machine q35,accel=kvm -cpu host -smp 4 -m 4G \
-	-drive file=$(ubuntu_test_root_img),media=disk,format=qcow2,if=ide,index=0 \
-	-drive file=$(ubuntu_test_secondary_img),media=disk,format=qcow2,if=ide,index=1 \
-	-device virtio-net-pci,netdev=net0 -netdev user,id=net0 \
+qemu-ubuntu-vm%: $(o)vm%_root.qcow2 $(o)vm%_secondary.qcow2
+	sudo -E $(qemu) -machine q35,accel=kvm -cpu host -smp 4 -m 4G \
+	-drive file=$(word 1, $^),media=disk,format=qcow2,if=ide,index=0 \
+	-drive file=$(word 2, $^),media=disk,format=qcow2,if=ide,index=1 \
+	-netdev bridge,id=net0,br=$(BRIDGE_IF) \
+	-device virtio-net-pci,netdev=net0,mac=$(shell printf 00:11:22:33:44:%02x $*) \
 	-boot c \
-	-display none -serial mon:stdio 
- 
+	-display none -serial mon:stdio
