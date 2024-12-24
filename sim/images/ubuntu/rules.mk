@@ -8,7 +8,7 @@ ubuntu_seed_img := $(o)seed.img
 ubuntu_root_img := $(o)root.qcow2
 ubuntu_secondary_img := $(o)secondary.qcow2
 ubuntu_input_dir := $(b)input/
-ubuntu_input_tar := $(ubuntu_input_dir).tar
+ubuntu_input_tar := $(b)input.tar
 ubuntu_install_script := $(d)install.sh
 
 $(ubuntu_root_img): $(eval packer_output_dir := $(b)packer_output)
@@ -38,7 +38,7 @@ $(ubuntu_seed_img): $(d)user-data $(d)meta-data
 	cloud-localds $@ $^
 
 $(ubuntu_input_tar): $(ubuntu_input_dir)
-	tar -cf $@ -C $< .
+	tar --owner=0 --group=0 -cf $@ -C $< .
 
 $(ubuntu_input_dir): $(devstack_dir)
 	rm -rf $@

@@ -71,7 +71,7 @@ build {
   sources = ["source.qemu.disk"]
 
   provisioner "shell" {
-    execute_command = "{{ .Vars }} sudo -S -E bash '{{ .Path }}'"
+    execute_command = "{{ .Vars }} bash '{{ .Path }}'"
     scripts         = ["${var.install_script}"]
   }
 }
