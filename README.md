@@ -62,3 +62,10 @@ sudo ip addr add <BRIDGE_IF_IP>/<BRIDGE_IF_MASK_LEN> brd + dev <dev>
 # Set the bridge as the gateway
 sudo ip route add default via <BRIDGE_IF_IP> dev <dev>
 ```
+
+Mount virtfs inside VMs
+-----------------------
+
+```bash
+sudo mount -t 9p -o trans=virtio <tag> <mnt>
+```

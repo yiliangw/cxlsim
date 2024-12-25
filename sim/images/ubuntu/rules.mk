@@ -53,10 +53,14 @@ $(o)vm%_root.qcow2: $(ubuntu_root_img)
 $(o)vm%_secondary.qcow2: $(ubuntu_secondary_img)
 	$(qemu_img) create -f qcow2 -F qcow2 -b $(shell realpath --relative-to=$(dir $@) $<) $@
 
-qemu-ubuntu-vm%: $(o)vm%_root.qcow2 $(o)vm%_secondary.qcow2
-	sudo -E $(qemu) -machine q35,accel=kvm -cpu host -smp 4 -m 4G \
+$(d)virtfs/vm%/: $@devstack.conf $@netplan.yaml
+
+qemu-ubuntu-vm%: $(o)vm%_root.qcow2 $(o)vm%_secondary.qcow2 $(d)virtfs/vm%/
+	sudo -E $(qemu) -machine q35,accel=kvm -cpu host -smp 4 -m 16G \
 	-drive file=$(word 1, $^),media=disk,format=qcow2,if=ide,index=0 \
 	-drive file=$(word 2, $^),media=disk,format=qcow2,if=ide,index=1 \
+	-fsdev local,id=hostshare,path=$(word 3, $^),security_model=passthrough \
+	-device virtio-9p-pci,fsdev=hostshare,mount_tag=devstack,mount_tag=hostshare \
 	-netdev bridge,id=net0,br=$(BRIDGE_IF) \
 	-device virtio-net-pci,netdev=net0,mac=$(shell printf 00:11:22:33:44:%02x $*) \
 	-boot c \
