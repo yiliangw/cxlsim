@@ -1,67 +1,96 @@
 UBUNTU_IMAGE_URL := https://cloud-images.ubuntu.com/daily/server/jammy/20241217/jammy-server-cloudimg-amd64.img
 UBUNTU_IMAGE_CKSUM_URL := https://cloud-images.ubuntu.com/daily/server/jammy/20241217/SHA256SUMS
 
-UBUNTU_ROOT_DISK_SZ_MB := 256000
-UBUNTU_SECONDARY_DISK_SZ_MB := 256000
+UBUNTU_ROOT_DISK_SZ := 250G
+UBUNTU_SECONDARY_DISK_SZ := 250G
 
-ubuntu_seed_img := $(o)seed.img
-ubuntu_root_img := $(o)root.qcow2
-ubuntu_secondary_img := $(o)secondary.qcow2
-ubuntu_input_dir := $(b)input/
-ubuntu_input_tar := $(b)input.tar
-ubuntu_install_script := $(d)install.sh
+ubuntu_seed_img := $(o)base/seed.raw
+ubuntu_base_root_img := $(o)base/root/disk.qcow2
+ubuntu_base_secondary_img := $(o)base/secondary/disk.qcow2
+ubuntu_base_input_dir := $(b)base/input/
+ubuntu_base_input_tar := $(b)base/input.tar
+ubuntu_base_install_script := $(d)base_install.sh
+ubuntu_extend_install_script := $(d)extend_install.sh
 
-$(ubuntu_root_img): $(eval packer_output_dir := $(b)packer_output)
-$(ubuntu_root_img): $(packer_hcl) $(packer) $(ubuntu_seed_img) $(ubuntu_input_tar) $(ubuntu_install_script)
-	rm -rf $(packer_output_dir)
+.PRECIOUS: $(ubuntu_base_root_img) $(ubuntu_base_secondary_img)
+$(ubuntu_base_root_img): $(base_hcl) $(packer) $(ubuntu_seed_img) $(ubuntu_base_input_tar) $(ubuntu_base_install_script)
+	rm -rf $(@D) 
 	PACKER_CACHE_DIR=$(packer_cache_dir) \
 	$(packer) build \
 	-var "cpus=`nproc`" \
-	-var "disk_sz=$(UBUNTU_ROOT_DISK_SZ_MB)" \
+	-var "disk_size=$(UBUNTU_ROOT_DISK_SZ)" \
 	-var "iso_url=$(UBUNTU_IMAGE_URL)" \
 	-var "iso_cksum_url=$(UBUNTU_IMAGE_CKSUM_URL)" \
-	-var "out_dir="$(packer_output_dir) \
+	-var "out_dir=$(@D)" \
 	-var "out_name=$(@F)" \
 	-var "seedimg=$(ubuntu_seed_img)" \
-	-var "input_tar=$(ubuntu_input_tar)" \
-	-var "install_script=$(ubuntu_install_script)" \
-	$(packer_hcl)
-	mkdir -p $(@D)
-	mv $(packer_output_dir)/$(@F) $@
+	-var "input_tar_src=$(ubuntu_base_input_tar)" \
+	-var "input_tar_dst=/tmp/input.tar" \
+	-var "install_script=$(ubuntu_base_install_script)" \
+	$(base_hcl)
 
-$(ubuntu_secondary_img):
-	$(qemu_img) create -f qcow2 $@ $(UBUNTU_SECONDARY_DISK_SZ_MB)M
+$(ubuntu_base_secondary_img):
+	mkdir -p $(@D)
+	$(qemu_img) create -f qcow2 $@ $(UBUNTU_SECONDARY_DISK_SZ)
 
 $(ubuntu_seed_img): $(d)user-data $(d)meta-data
 	mkdir -p $(@D)
 	rm -f $@
-	cloud-localds $@ $^
+	$(MAKE) start-ubuntu-docker
+	$(ubuntu_docker_exec) "cloud-localds $@ $^"
+	$(MAKE) stop-ubuntu-docker
 
-$(ubuntu_input_tar): $(ubuntu_input_dir)
-	tar --owner=0 --group=0 -cf $@ -C $< .
+$(ubuntu_base_input_tar): $(ubuntu_base_input_dir)
+	tar -C $(dir $<) -cf $@ .
 
-$(ubuntu_input_dir): $(devstack_dir)
+$(ubuntu_base_input_dir): $(devstack_dir)
 	rm -rf $@
 	mkdir -p $@
-	cp -r $(devstack_dir) $@
+	cp -r $(devstack_dir) $@devstack
 
-.PRECIOUS: $(o)vm%_root.qcow2
-$(o)vm%_root.qcow2: $(ubuntu_root_img)
+ubuntu_node_input := devstack/local.conf netplan/90-baize-config.yaml var
+ubuntu_common_input := hosts
+
+$(b)node_%/input.tar: $(d)input/%/ $(d)input/common/ $(addprefix $(d)input/%/, $(ubuntu_node_input)) $(addprefix $(d)input/common/, $(ubuntu_common_input))
+	rm -rf $(@D)/input
+	mkdir -p $(@D)/input
+	cp -r $(word 1, $^)* $(@D)/input
+	cp -r $(word 2, $^)* $(@D)/input
+	tar -C $(@D)/input -cf $@ .
+
+.PRECIOUS: $(o)node_%/root/disk.qcow2 $(o)node_%/secondary/disk.qcow2
+
+$(o)node_%/root/disk.qcow2: $(b)node_%/input.tar $(extend_hcl) $(packer) $(ubuntu_base_root_img) $(ubuntu_extend_install_script) $(d)rules.mk
+	rm -rf $(@D) 
+	mkdir -p $(dir $(@D))
+	PACKER_CACHE_DIR=$(packer_cache_dir) \
+	$(packer) build \
+	-var "cpus=`nproc`" \
+	-var "base_img=$(ubuntu_base_root_img)" \
+	-var "disk_size=$(UBUNTU_ROOT_DISK_SZ)" \
+	-var "out_dir=$(@D)" \
+	-var "out_name=$(@F)" \
+	-var "input_tar_src=$<" \
+	-var "input_tar_dst=/tmp/input.tar" \
+	-var "install_script=$(ubuntu_extend_install_script)" \
+	$(extend_hcl)
+
+$(o)node_%/secondary/disk.qcow2: $(ubuntu_base_secondary_img)
+	mkdir -p $(@D)
 	$(qemu_img) create -f qcow2 -F qcow2 -b $(shell realpath --relative-to=$(dir $@) $<) $@
 
-.PRECIOUS: $(o)vm%_secondary.qcow2
-$(o)vm%_secondary.qcow2: $(ubuntu_secondary_img)
-	$(qemu_img) create -f qcow2 -F qcow2 -b $(shell realpath --relative-to=$(dir $@) $<) $@
+ubuntu_mac_conf := $(d)mac.conf
 
-$(d)virtfs/vm%/: $@devstack.conf $@netplan.yaml
-
-qemu-ubuntu-vm%: $(o)vm%_root.qcow2 $(o)vm%_secondary.qcow2 $(d)virtfs/vm%/
+.PHONY: qemu-ubuntu-%
+qemu-ubuntu-%: $(o)node_%/root/disk.qcow2 $(o)node_%/secondary/disk.qcow2
+	$(eval dev0_mac := $(shell grep "^$*-dev0" $(ubuntu_mac_conf) | cut -d' ' -f2))
+	$(eval dev1_mac := $(shell grep "^$*-dev1" $(ubuntu_mac_conf) | cut -d' ' -f2))
 	sudo -E $(qemu) -machine q35,accel=kvm -cpu host -smp 4 -m 16G \
 	-drive file=$(word 1, $^),media=disk,format=qcow2,if=ide,index=0 \
 	-drive file=$(word 2, $^),media=disk,format=qcow2,if=ide,index=1 \
-	-fsdev local,id=hostshare,path=$(word 3, $^),security_model=passthrough \
-	-device virtio-9p-pci,fsdev=hostshare,mount_tag=devstack,mount_tag=hostshare \
-	-netdev bridge,id=net0,br=$(BRIDGE_IF) \
-	-device virtio-net-pci,netdev=net0,mac=$(shell printf 00:11:22:33:44:%02x $*) \
+	-netdev bridge,id=net-management,br=$(MANAGEMENT_BRIDGE_IF) \
+	-device virtio-net-pci,netdev=net-management,mac=$(dev0_mac) \
+	-netdev bridge,id=net-self-service,br=$(SELF_SERVICE_BRIDGE_IF) \
+	-device virtio-net-pci,netdev=net-self-service,mac=$(dev1_mac) \
 	-boot c \
 	-display none -serial mon:stdio

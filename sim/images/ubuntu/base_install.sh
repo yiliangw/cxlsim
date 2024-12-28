@@ -5,10 +5,10 @@ sudo usermod -aG sudo $USER
 sudo usermod -aG disk $USER
 sudo usermod -aG kvm $USER
 
-input_d=${HOME}/input
-mkdir -p $input_d
-sudo chmod a+r /dev/sdc
-tar xf /dev/sdc -C $input_d
+mkdir -p /tmp/input
+tar xf /tmp/input.tar -C /tmp/input
+
+cp -r /tmp/input/devstack $HOME
 
 # Do not wait for the network during boot
 sudo systemctl mask systemd-networkd-wait-online

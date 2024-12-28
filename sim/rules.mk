@@ -1,5 +1,3 @@
-simbricks_docker_exec := docker exec $(SIMBRICKS_DOCKER_NAME) /bin/bash -c
-
 simbricks_dir := $(d)simbricks
 simbricks_run_script := $(simbricks_dir)/experiments/run.py
 exp_script := $(d)exps/simple_ping.py

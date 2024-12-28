@@ -16,8 +16,8 @@ variable "iso_cksum_url" {
   type    = string    
 }
 
-variable "disk_sz" {
-  type    = number
+variable "disk_size" {
+  type    = string
 }
 
 variable "out_dir" {
@@ -32,7 +32,11 @@ variable "seedimg" {
   type    = string
 }
 
-variable "input_tar" {
+variable "input_tar_src" {
+  type    = string
+}
+
+variable "input_tar_dst" {
   type    = string
 }
 
@@ -46,7 +50,7 @@ source "qemu" "disk" {
   cpus             = "${var.cpus}"
   memory           = "${var.memory}"
   format           = "qcow2"
-  disk_size        = "${var.disk_sz}"
+  disk_size        = "${var.disk_size}"
   disk_image       = true
   disk_compression = false
   headless         = true
@@ -57,7 +61,6 @@ source "qemu" "disk" {
     ["-machine", "q35,accel=kvm:tcg,usb=off,vmport=off,dump-guest-core=off"],
     ["-drive", "file=${var.out_dir}/${var.out_name},if=ide,index=0,cache=writeback,discard=ignore,media=disk,format=qcow2"],
     ["-drive", "file=${var.seedimg},if=ide,index=1,media=disk,driver=raw"],
-    ["-drive", "file=${var.input_tar},if=ide,index=2,media=disk,driver=raw"],
     ["-boot", "c"]
   ]
   shutdown_command = "sudo shutdown -P now"
@@ -69,6 +72,12 @@ source "qemu" "disk" {
 
 build {
   sources = ["source.qemu.disk"]
+
+  provisioner "file" {
+    direction = "upload"
+    source = "${var.input_tar_src}"
+    destination = "${var.input_tar_dst}"
+  }
 
   provisioner "shell" {
     execute_command = "{{ .Vars }} bash '{{ .Path }}'"

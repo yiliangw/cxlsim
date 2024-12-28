@@ -11,6 +11,9 @@ UBUNTU_DOCKER_FILE := $(d)Dockerfile.ubuntu
 UBUNTU_DOCKER_IMAGE := baize-ubuntu
 UBUNTU_DOCKER_NAME := baize_ubuntu_ 
 
+simbricks_docker_exec := docker exec $(SIMBRICKS_DOCKER_NAME) /bin/bash -c
+ubuntu_docker_exec := docker exec $(UBUNTU_DOCKER_NAME) /bin/bash -c
+
 define start_container # $(1) - container name, $(2) - image name, $(3) - detach
 	$(call stop_container,$(1))
 
