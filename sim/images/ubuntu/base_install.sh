@@ -15,5 +15,13 @@ sudo systemctl mask systemd-networkd-wait-online
 
 export DEBIAN_FRONTEND=noninteractive
 
+# OpenStack 2024.1 (Caracal)
+sudo add-apt-repository -y cloud-archive:caracal
+
 sudo apt-get update
-sudo apt-get install -y net-tools
+sudo apt-get install -y net-tools 
+
+# OpenStack dependencies
+sudo apt-get install -y chrony
+
+

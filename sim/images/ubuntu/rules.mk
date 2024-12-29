@@ -48,8 +48,10 @@ $(ubuntu_base_input_dir): $(devstack_dir)
 	mkdir -p $@
 	cp -r $(devstack_dir) $@devstack
 
-ubuntu_node_input := devstack/local.conf netplan/90-baize-config.yaml var
+ubuntu_node_input := var devstack/local.conf netplan/90-baize-config.yaml chrony/chrony.conf
 ubuntu_common_input := hosts
+
+$(b)node_controller/input.tar: $(addprefix $(d)input/controller/special/, install.sh mysql/99-openstack.cnf etcd memcached.conf)
 
 $(b)node_%/input.tar: $(d)input/%/ $(d)input/common/ $(addprefix $(d)input/%/, $(ubuntu_node_input)) $(addprefix $(d)input/common/, $(ubuntu_common_input))
 	rm -rf $(@D)/input
@@ -60,17 +62,17 @@ $(b)node_%/input.tar: $(d)input/%/ $(d)input/common/ $(addprefix $(d)input/%/, $
 
 .PRECIOUS: $(o)node_%/root/disk.qcow2 $(o)node_%/secondary/disk.qcow2
 
-$(o)node_%/root/disk.qcow2: $(b)node_%/input.tar $(extend_hcl) $(packer) $(ubuntu_base_root_img) $(ubuntu_extend_install_script) $(d)rules.mk
-	rm -rf $(@D) 
+$(o)node_%/root/disk.qcow2: $(ubuntu_base_root_img) $(b)node_%/input.tar $(extend_hcl) $(packer) $(ubuntu_extend_install_script)
+	rm -rf $(@D)
 	mkdir -p $(dir $(@D))
 	PACKER_CACHE_DIR=$(packer_cache_dir) \
 	$(packer) build \
 	-var "cpus=`nproc`" \
-	-var "base_img=$(ubuntu_base_root_img)" \
+	-var "base_img=$(word 1, $^)" \
 	-var "disk_size=$(UBUNTU_ROOT_DISK_SZ)" \
 	-var "out_dir=$(@D)" \
 	-var "out_name=$(@F)" \
-	-var "input_tar_src=$<" \
+	-var "input_tar_src=$(word 2, $^)" \
 	-var "input_tar_dst=/tmp/input.tar" \
 	-var "install_script=$(ubuntu_extend_install_script)" \
 	$(extend_hcl)

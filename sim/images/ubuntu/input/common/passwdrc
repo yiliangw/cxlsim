@@ -1,0 +1,2 @@
+export ADMIN_PASS=baize
+export RABBIT_PASS=${ADMIN_PASS}
