@@ -40,24 +40,17 @@ $(ubuntu_seed_img): $(d)user-data $(d)meta-data
 	$(ubuntu_docker_exec) "cloud-localds $@ $^"
 	$(MAKE) stop-ubuntu-docker
 
-$(ubuntu_base_input_tar): $(ubuntu_base_input_dir)
-	tar -C $(dir $<) -cf $@ .
+$(ubuntu_base_input_tar): $(d)input/base/ $(addprefix $(d)input/base/, hosts passwdrc)
+	tar -C $< -cf $@ .
 
-$(ubuntu_base_input_dir): $(devstack_dir)
-	rm -rf $@
-	mkdir -p $@
-	cp -r $(devstack_dir) $@devstack
+ubuntu_node_input := var netplan/90-baize-config.yaml chrony/chrony.conf
 
-ubuntu_node_input := var devstack/local.conf netplan/90-baize-config.yaml chrony/chrony.conf
-ubuntu_common_input := hosts
+$(b)node_controller/input.tar: $(d)input/controller/special/install.sh $(addprefix $(d)input/controller/special/setup/, run.sh mysql/99-openstack.cnf etcd memcached.conf)
 
-$(b)node_controller/input.tar: $(addprefix $(d)input/controller/special/, install.sh mysql/99-openstack.cnf etcd memcached.conf)
-
-$(b)node_%/input.tar: $(d)input/%/ $(d)input/common/ $(addprefix $(d)input/%/, $(ubuntu_node_input)) $(addprefix $(d)input/common/, $(ubuntu_common_input))
+$(b)node_%/input.tar: $(d)input/%/ $(addprefix $(d)input/%/, $(ubuntu_node_input))
 	rm -rf $(@D)/input
 	mkdir -p $(@D)/input
 	cp -r $(word 1, $^)* $(@D)/input
-	cp -r $(word 2, $^)* $(@D)/input
 	tar -C $(@D)/input -cf $@ .
 
 .PRECIOUS: $(o)node_%/root/disk.qcow2 $(o)node_%/secondary/disk.qcow2

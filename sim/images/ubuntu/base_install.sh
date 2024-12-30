@@ -8,7 +8,12 @@ sudo usermod -aG kvm $USER
 mkdir -p /tmp/input
 tar xf /tmp/input.tar -C /tmp/input
 
-cp -r /tmp/input/devstack $HOME
+cd /tmp/input
+
+# OpenStack passwords
+cp passwdrc ${HOME}
+# Host names
+sudo cp hosts /etc/hosts
 
 # Do not wait for the network during boot
 sudo systemctl mask systemd-networkd-wait-online
@@ -23,5 +28,3 @@ sudo apt-get install -y net-tools
 
 # OpenStack dependencies
 sudo apt-get install -y chrony
-
-
