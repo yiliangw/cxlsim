@@ -11,7 +11,7 @@ tar xf /tmp/input.tar -C /tmp/input
 cd /tmp/input
 
 # OpenStack passwords
-cp passwdrc ${HOME}
+cp -r env ${HOME}
 # Host names
 sudo cp hosts /etc/hosts
 
@@ -24,7 +24,7 @@ export DEBIAN_FRONTEND=noninteractive
 sudo add-apt-repository -y cloud-archive:caracal
 
 sudo apt-get update
-sudo apt-get install -y net-tools 
+sudo apt-get install -y net-tools
 
 # OpenStack dependencies
-sudo apt-get install -y chrony
+sudo apt-get install -y chrony python3-openstackclient

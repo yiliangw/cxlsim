@@ -4,7 +4,6 @@ mkdir -p /tmp/input
 cd /tmp/input
 tar xf /tmp/input.tar
 
-source ${HOME}/passwdrc
 source var
 
 sudo -E bash -c "echo $HOSTNAME > /etc/hostname"

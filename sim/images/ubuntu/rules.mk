@@ -40,7 +40,10 @@ $(ubuntu_seed_img): $(d)user-data $(d)meta-data
 	$(ubuntu_docker_exec) "cloud-localds $@ $^"
 	$(MAKE) stop-ubuntu-docker
 
-$(ubuntu_base_input_tar): $(d)input/base/ $(addprefix $(d)input/base/, hosts passwdrc)
+$(b)base/input.tar: $(d)input/base/ $(d)input/base/hosts  $(addprefix $(d)input/base/env/, passwdrc admin_openrc baize_openrc)
+	rm -rf $(@D)/input	
+	mkdir -p $(@D)/input
+	cp -r $(word 1, $^)* $(@D)/input
 	tar -C $< -cf $@ .
 
 ubuntu_node_input := var netplan/90-baize-config.yaml chrony/chrony.conf
