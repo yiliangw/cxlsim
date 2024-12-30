@@ -2,6 +2,8 @@
 d=`dirname ${BASH_SOURCE[0]}`
 . ${HOME}/env/passwdrc
 
+set -x
+
 # Create the keystone database
 cat <<EOF | sudo mysql -u root
 CREATE DATABASE keystone;
@@ -12,9 +14,7 @@ EOF
 # Install keystone
 sudo apt-get install keystone -y
 # Edit /etc/keystone/keystone.conf
-sudo sed -i "/^\[database\]/,/^\[/{s/^connection /# connection /}" /etc/keystone/keystone.conf
-sudo sed -i "/^\[database\]/a connection = mysql+pymysql://keystone:${KEYSTONE_DBPASS}@controller/keystone" /etc/keystone/keystone.conf
-sudo sed -i "/^\[token\]/a provider = fernet" /etc/keystone/keystone.conf
+sudo -E bash -c "sed 's/{{KEYSTONE_DBPASS}}/${KEYSTONE_DBPASS}/g' ${d}/keystone.conf.tpl > /etc/keystone/keystone.conf"
 # Populate the Identity service database
 sudo su -s /bin/sh -c "keystone-manage db_sync" keystone
 # Initialize Fernet key repositories
@@ -31,9 +31,12 @@ sudo keystone-manage bootstrap --bootstrap-password $ADMIN_PASS \
 sudo sed -i '/^ServerName /s/^/# /; $a ServerName controller' /etc/apache2/apache2.conf
 sudo systemctl restart apache2
 
-# Create a unprivileged project and user
 . ${HOME}/env/admin_openrc
-openstack project create --domain default baize
+# The service project contains a user for each service
+openstack project create --domain default --description "Service Project" service 
+
+# Create a unprivileged project and user
+openstack project create --domain default --description "Baize Project" baize
 openstack user create --domain default --password $BAIZE_PASS baize
 openstack role create baize
 openstack role add --project baize --user baize baize
