@@ -34,6 +34,7 @@ id:
     user: &user baize
     pass: &pass baize
   openstack:
+    user_project: *user
     user: *user
     admin_pass: &ospass baize
     user_pass: *ospass
