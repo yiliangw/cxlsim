@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -xe
+
 # These groups will only take effect from the next login
 sudo usermod -aG sudo $USER
 sudo usermod -aG disk $USER
@@ -24,7 +26,4 @@ export DEBIAN_FRONTEND=noninteractive
 sudo add-apt-repository -y cloud-archive:caracal
 
 sudo apt-get update
-sudo apt-get install -y net-tools
-
-# OpenStack dependencies
-sudo apt-get install -y chrony python3-openstackclient
+sudo apt-get install -y net-tools chrony python3-openstackclient

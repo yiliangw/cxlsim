@@ -2,7 +2,7 @@
 d=`dirname ${BASH_SOURCE[0]}`
 . ${HOME}/env/passwdrc
 
-set -x
+set -xe
 
 # Create the glance database
 cat <<EOF | sudo mysql -u root
@@ -22,9 +22,6 @@ openstack service create --name glance --description "OpenStack Image" image
 openstack endpoint create --region RegionOne image public http://controller:9292
 openstack endpoint create --region RegionOne image internal http://controller:9292
 openstack endpoint create --region RegionOne image admin http://controller:9292
-
-# Install glance
-sudo apt install glance -y
 
 # Edit /etc/glance/glance-api.conf
 sudo bash -c "sed 's/{{GLANCE_DBPASS}}/${GLANCE_DBPASS}/g; s/{{GLANCE_PASS}}/${GLANCE_PASS}/g' ${d}/glance-api.conf.tpl > /etc/glance/glance-api.conf"

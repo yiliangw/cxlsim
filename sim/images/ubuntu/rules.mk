@@ -48,7 +48,7 @@ $(b)base/input.tar: $(d)input/base/ $(d)input/base/hosts  $(addprefix $(d)input/
 
 ubuntu_node_input := var netplan/90-baize-config.yaml chrony/chrony.conf
 
-$(b)node_controller/input.tar: $(d)input/controller/special/install.sh $(addprefix $(d)input/controller/special/setup/, run.sh mysql/99-openstack.cnf etcd memcached.conf keystone.sh keystone.conf.tpl glance.sh glance-api.conf.tpl)
+$(b)node_controller/input.tar: $(d)input/controller/special/install.sh $(addprefix $(d)input/controller/special/setup/, run.sh mysql/99-openstack.cnf etcd memcached.conf keystone.sh keystone.conf.tpl glance.sh glance-api.conf.tpl placement.sh placement.conf.tpl)
 
 $(b)node_%/input.tar: $(d)input/%/ $(addprefix $(d)input/%/, $(ubuntu_node_input))
 	rm -rf $(@D)/input

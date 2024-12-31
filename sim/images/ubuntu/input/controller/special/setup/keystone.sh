@@ -2,7 +2,7 @@
 d=`dirname ${BASH_SOURCE[0]}`
 . ${HOME}/env/passwdrc
 
-set -x
+set -xe
 
 # Create the keystone database
 cat <<EOF | sudo mysql -u root
@@ -12,7 +12,6 @@ GRANT ALL PRIVILEGES ON keystone.* TO 'keystone'@'%' IDENTIFIED BY '${KEYSTONE_D
 EOF
 
 # Install keystone
-sudo apt-get install keystone -y
 # Edit /etc/keystone/keystone.conf
 sudo -E bash -c "sed 's/{{KEYSTONE_DBPASS}}/${KEYSTONE_DBPASS}/g' ${d}/keystone.conf.tpl > /etc/keystone/keystone.conf"
 # Populate the Identity service database
