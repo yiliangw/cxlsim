@@ -40,7 +40,7 @@ $(ubuntu_seed_img): $(d)user-data $(d)meta-data
 	$(ubuntu_docker_exec) "cloud-localds $@ $^"
 	$(MAKE) stop-ubuntu-docker
 
-$(b)base/input.tar: $(d)input/base/ $(d)input/base/hosts  $(addprefix $(d)input/base/env/, passwdrc admin_openrc baize_openrc)
+$(b)base/input.tar: $(d)input/base/ $(d)input/base/hosts  $(addprefix $(d)input/base/env/, passwdrc admin_openrc baize_openrc utils/sed_tpl.sh)
 	rm -rf $(@D)/input	
 	mkdir -p $(@D)/input
 	cp -r $(word 1, $^)* $(@D)/input
@@ -48,7 +48,7 @@ $(b)base/input.tar: $(d)input/base/ $(d)input/base/hosts  $(addprefix $(d)input/
 
 ubuntu_node_input := var netplan/90-baize-config.yaml chrony/chrony.conf
 
-$(b)node_controller/input.tar: $(d)input/controller/special/install.sh $(addprefix $(d)input/controller/special/setup/, run.sh mysql/99-openstack.cnf etcd memcached.conf keystone.sh keystone.conf.tpl glance.sh glance-api.conf.tpl placement.sh placement.conf.tpl)
+$(b)node_controller/input.tar: $(d)input/controller/special/install.sh $(addprefix $(d)input/controller/special/setup/, run.sh mysql/99-openstack.cnf etcd memcached.conf keystone.sh keystone.conf.tpl glance.sh glance-api.conf.tpl placement.sh placement.conf.tpl nova.sh nova.conf.tpl)
 
 $(b)node_%/input.tar: $(d)input/%/ $(addprefix $(d)input/%/, $(ubuntu_node_input))
 	rm -rf $(@D)/input

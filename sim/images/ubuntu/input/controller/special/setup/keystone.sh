@@ -1,6 +1,7 @@
 #!/bin/bash
 d=`dirname ${BASH_SOURCE[0]}`
-. ${HOME}/env/passwdrc
+source ${HOME}/env/passwdrc
+sed_tpl="${HOME}/env/utils/sed_tpl.sh"
 
 set -xe
 
@@ -13,7 +14,7 @@ EOF
 
 # Install keystone
 # Edit /etc/keystone/keystone.conf
-sudo -E bash -c "sed 's/{{KEYSTONE_DBPASS}}/${KEYSTONE_DBPASS}/g' ${d}/keystone.conf.tpl > /etc/keystone/keystone.conf"
+sudo -E bash -c "${sed_tpl} ${d}/keystone.conf.tpl > /etc/keystone/keystone.conf"
 # Populate the Identity service database
 sudo su -s /bin/sh -c "keystone-manage db_sync" keystone
 # Initialize Fernet key repositories

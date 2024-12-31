@@ -1,6 +1,7 @@
 #!/bin/bash
 d=`dirname ${BASH_SOURCE[0]}`
-. ${HOME}/env/passwdrc
+source ${HOME}/env/passwdrc
+sed_tpl="${HOME}/env/utils/sed_tpl.sh"
 
 set -xe
 
@@ -21,8 +22,13 @@ openstack endpoint create --region RegionOne placement public http://controller:
 openstack endpoint create --region RegionOne placement internal http://controller:8778
 openstack endpoint create --region RegionOne placement admin http://controller:8778
 
-sudo bash -c "sed 's/{{PLACEMENT_DBPASS}}/${PLACEMENT_DBPASS}/g; s/{{PLACEMENT_PASS}}/${PLACEMENT_PASS}/g' ${d}/placement.conf.tpl > /etc/placement/placement.conf"
+sudo bash -c "${sed_tpl} ${d}/placement.conf.tpl  > /etc/placement/placement.conf"
 
 sudo su -s /bin/sh -c "placement-manage db sync" placement
 
 sudo systemctl restart apache2
+
+# Verify
+sudo placement-status upgrade check
+openstack --os-placement-api-version 1.2 resource class list --sort-column name
+openstack --os-placement-api-version 1.6 trait list --sort-column name

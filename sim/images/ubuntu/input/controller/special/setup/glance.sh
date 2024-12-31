@@ -1,6 +1,7 @@
 #!/bin/bash
 d=`dirname ${BASH_SOURCE[0]}`
-. ${HOME}/env/passwdrc
+source ${HOME}/env/passwdrc
+sed_tpl="${HOME}/env/utils/sed_tpl.sh"
 
 set -xe
 
@@ -24,7 +25,7 @@ openstack endpoint create --region RegionOne image internal http://controller:92
 openstack endpoint create --region RegionOne image admin http://controller:9292
 
 # Edit /etc/glance/glance-api.conf
-sudo bash -c "sed 's/{{GLANCE_DBPASS}}/${GLANCE_DBPASS}/g; s/{{GLANCE_PASS}}/${GLANCE_PASS}/g' ${d}/glance-api.conf.tpl > /etc/glance/glance-api.conf"
+sudo bash -c "${sed_tpl} ${d}/glance-api.conf.tpl > /etc/glance/glance-api.conf"
 
 # Permit reader access to glance
 openstack role add --user glance --user-domain Default --system all reader
@@ -33,3 +34,11 @@ openstack role add --user glance --user-domain Default --system all reader
 sudo su -s /bin/sh -c "glance-manage db_sync" glance
 
 sudo systemctl restart glance-api
+
+# Verify
+images=cirros-0.4.0-x86_64-disk.img
+wget -O /tmp/$images http://download.cirros-cloud.net/0.4.0/$images
+glance image-create --name "cirros" --file /tmp/$images --disk-format qcow2 \
+  --container-format bare --visibility public
+# Ensure there is cirros in the output, otherwise fail
+glance image-list | grep -q cirros

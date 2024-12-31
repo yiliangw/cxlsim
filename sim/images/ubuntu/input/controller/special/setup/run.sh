@@ -28,3 +28,4 @@ sudo systemctl restart etcd
 bash ${d}/keystone.sh
 bash ${d}/glance.sh
 bash ${d}/placement.sh
+bash ${d}/nova.sh

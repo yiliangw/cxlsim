@@ -11,6 +11,9 @@ sudo apt-get install -y \
   etcd \
   keystone \
   glance \
-  placement-api
+  placement-api \
+  nova-api nova-conductor nova-novncproxy nova-scheduler
+
+pip3 install osc-placement
 
 cp -r ${d}/setup $HOME/setup
