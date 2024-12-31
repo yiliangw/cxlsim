@@ -1,4 +1,8 @@
-include config/config.mk
+# output directory 
+O ?= out/
+# build directory
+B ?= $(O)build/
+
 O := $(if $(filter %/,$(O)),$(O),$(O)/)
 B := $(if $(filter %/,$(B)),$(B),$(B)/)
 
@@ -33,6 +37,7 @@ endef
 help:
 	@echo "Hello Baize :)"
 
+$(eval $(call include_rules,$(d)config/rules.mk))
 $(eval $(call include_rules,$(d)utils/rules.mk))
 $(eval $(call include_rules,$(d)docker/rules.mk))
 $(eval $(call include_rules,$(d)sim/rules.mk))

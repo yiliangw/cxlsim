@@ -1,0 +1,52 @@
+network:
+  host:
+    internet_if: eno1
+  management:
+    bridge: baizebr0
+    ip: 10.10.10.1
+    mask_len: 24
+    nodes:
+      controller:
+        ip: 10.10.10.100
+        mac: 52:54:00:11:11:01
+      compute1:
+        ip: 10.10.10.101
+        mac: 52:54:00:11:11:02
+      compute2:
+        ip: 10.10.10.102
+        mac: 52:54:00:11:11:03
+  service:
+    bridge: baizebr1
+    ip: 10.10.11.1
+    mask_len: 24
+    nodes:
+      controller:
+        ip: 10.10.11.100
+        mac: 52:54:00:11:22:01
+      compute1:
+        ip: 10.10.11.101
+        mac: 52:54:00:11:22:02
+      compute2:
+        ip: 10.10.11.102
+        mac: 52:54:00:11:22:03
+id:
+  system:
+    user: &user baize
+    pass: &pass baize
+  openstack:
+    user: *user
+    admin_pass: &ospass baize
+    user_pass: *ospass
+    glance_pass: *ospass
+    placement_pass: *ospass
+    nova_pass: *ospass
+    neutron_pass: *ospass
+    rabbit_pass: *ospass
+
+    keystone_dbpass: *ospass
+    glance_dbpass: *ospass
+    placement_dbpass: *ospass
+    nova_dbpass: *ospass
+    neutron_dbpass: *ospass
+
+  
