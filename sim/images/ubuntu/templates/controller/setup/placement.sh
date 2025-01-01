@@ -1,7 +1,5 @@
 #!/bin/bash
 d=`dirname ${BASH_SOURCE[0]}`
-source ${HOME}/env/passwdrc
-sed_tpl="${HOME}/env/utils/sed_tpl.sh"
 
 set -xe
 
@@ -22,7 +20,7 @@ openstack endpoint create --region RegionOne placement public http://controller:
 openstack endpoint create --region RegionOne placement internal http://controller:8778
 openstack endpoint create --region RegionOne placement admin http://controller:8778
 
-sudo bash -c "${sed_tpl} ${d}/placement.conf.tpl  > /etc/placement/placement.conf"
+sudo tee /etc/placement/placement.conf < ${d}/placement.conf > /dev/null
 
 sudo su -s /bin/sh -c "placement-manage db sync" placement
 

@@ -10,11 +10,13 @@ $(yq):
 ubuntu_config := $(d)ubuntu.yaml
 ubuntu_sed := $(b)ubuntu.sed
 
-$(d)%.yaml: $(yq)
+define yaml2sed
+$(yq) e '.. | select(. == "*") | "s/{{ ." + (path | join(".")) + " }}/" + . + "/g"' $(1) > $(2)
+endef
 
-$(b)%.sed: $(d)%.yaml
+$(b)%.sed: $(d)%.yaml $(yq)
 	mkdir -p $(@D)
-	yq e '.. | select(. == "*") | "s/{{ " + (path | join(".")) + " }}/" + . + "/g"' $< > $@
+	$(call yaml2sed,$<,$@)
 
 define confget_ubuntu
 $(shell $(yq) '$(1)' $(ubuntu_config))

@@ -1,7 +1,5 @@
 #!/bin/bash
 d=`dirname ${BASH_SOURCE[0]}`
-source ${HOME}/env/passwdrc
-sed_tpl="${HOME}/env/utils/sed_tpl.sh"
 
 set -xe
 
@@ -37,7 +35,7 @@ openstack endpoint create --region RegionOne \
 openstack endpoint create --region RegionOne \
   compute admin http://controller:8774/v2.1
 
-sudo bash -c "${sed_tpl} ${d}/nova.conf.tpl > /etc/nova/nova.conf"
+sudo tee /etc/nova/nova.conf < ${d}/nova.conf > /dev/null
 
 sudo su -s /bin/sh -c "nova-manage api_db sync" nova
 sudo su -s /bin/sh -c "nova-manage cell_v2 map_cell0" nova

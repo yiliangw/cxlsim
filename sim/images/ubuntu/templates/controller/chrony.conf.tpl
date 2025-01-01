@@ -12,8 +12,12 @@ confdir /etc/chrony/conf.d
 # Use time sources from DHCP.
 # sourcedir /run/chrony-dhcp
 
-# Use the controller's clock as the time source.
-server controller prefer iburst
+# Use the local clock as the time source.
+server 127.127.1.0 prefer iburst 
+local stratum 10
+
+# Allow NTP client access from the management network.
+allow {{ .local.network.management.ip }}/{{ .network.management.mask_len }}
 
 # Use NTP sources found in /etc/chrony/sources.d.
 sourcedir /etc/chrony/sources.d

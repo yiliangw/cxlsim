@@ -1,7 +1,5 @@
 #!/bin/bash
 d=`dirname ${BASH_SOURCE[0]}`
-source ${HOME}/env/passwdrc
-sed_tpl="${HOME}/env/utils/sed_tpl.sh"
 
 set -xe
 
@@ -25,7 +23,7 @@ openstack endpoint create --region RegionOne image internal http://controller:92
 openstack endpoint create --region RegionOne image admin http://controller:9292
 
 # Edit /etc/glance/glance-api.conf
-sudo bash -c "${sed_tpl} ${d}/glance-api.conf.tpl > /etc/glance/glance-api.conf"
+sudo tee /etc/glance/glance-api.conf < ${d}/glance-api.conf > /dev/null
 
 # Permit reader access to glance
 openstack role add --user glance --user-domain Default --system all reader

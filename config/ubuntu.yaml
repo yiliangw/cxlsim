@@ -43,6 +43,7 @@ id:
     nova_pass: *ospass
     neutron_pass: *ospass
     rabbit_pass: *ospass
+    metadata_secret: *ospass
 
     keystone_dbpass: *ospass
     glance_dbpass: *ospass

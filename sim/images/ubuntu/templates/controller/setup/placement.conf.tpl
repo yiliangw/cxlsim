@@ -246,7 +246,7 @@ project_domain_name = Default
 user_domain_name = Default
 project_name = service
 username = placement
-password = {{PLACEMENT_PASS}}
+password = {{ .id.openstack.placement_pass }}
 
 #
 # From keystonemiddleware.auth_token
@@ -521,7 +521,7 @@ password = {{PLACEMENT_PASS}}
 
 
 [placement_database]
-connection = mysql+pymysql://placement:{{PLACEMENT_DBPASS}}@controller/placement
+connection = mysql+pymysql://placement:{{ .id.openstack.placement_dbpass }}@controller/placement
 #
 # The *Placement API Database* is a the database used with the placement
 # service. If the connection option is not set, the placement service will

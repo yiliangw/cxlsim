@@ -7,16 +7,6 @@ sudo usermod -aG sudo $USER
 sudo usermod -aG disk $USER
 sudo usermod -aG kvm $USER
 
-mkdir -p /tmp/input
-tar xf /tmp/input.tar -C /tmp/input
-
-cd /tmp/input
-
-# OpenStack passwords
-cp -r env ${HOME}
-# Host names
-sudo cp hosts /etc/hosts
-
 # Do not wait for the network during boot
 sudo systemctl mask systemd-networkd-wait-online
 

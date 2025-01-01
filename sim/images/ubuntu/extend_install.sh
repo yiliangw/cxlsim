@@ -6,17 +6,14 @@ mkdir -p /tmp/input
 cd /tmp/input
 tar xf /tmp/input.tar
 
-source var
-
-sudo -E bash -c "echo $HOSTNAME > /etc/hostname"
-
-# netplan
+sudo tee /etc/hosts < hosts > /dev/null
+sudo tee /etc/hostname < hostname > /dev/null
 sudo rm -rf /etc/netplan/*
-sudo cp netplan/* /etc/netplan
+sudo cp netplan.yaml /etc/netplan/99-netplan-config.yaml
+sudo chmod 600 /etc/netplan/99-netplan-config.yaml
 
-# chrony
-sudo cp chrony/chrony.conf /etc/chrony
+cp -r env/ ${HOME}
 
-if [ -f special/install.sh ]; then
-  bash special/install.sh
+if [ -f install.sh ]; then
+  bash install.sh
 fi

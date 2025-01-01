@@ -3,7 +3,11 @@ d=`dirname ${BASH_SOURCE[0]}`
 
 set -xe
 
+sudo tee /etc/chrony/chrony.conf < chrony.conf > /dev/null
+sudo systemctl restart chrony
+
 sudo apt-get update
+
 sudo apt-get install -y \
   mariadb-server python3-pymysql \
   rabbitmq-server \
