@@ -6,7 +6,7 @@ Quick Start
 
 Prerequisites:
 
-- `git`, `make`, `docker` and `qemu-system` has been installed on the system
+- `git`, `make`, `docker`, `cloud-localds` and `qemu-system` has been installed on the system
 
 - sudo is enabled for the current user
 

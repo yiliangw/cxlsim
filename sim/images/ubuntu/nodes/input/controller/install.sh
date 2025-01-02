@@ -6,6 +6,8 @@ set -xe
 sudo tee /etc/chrony/chrony.conf < chrony.conf > /dev/null
 sudo systemctl restart chrony
 
+export DEBIAN_FRONTEND=noninteractive
+
 sudo apt-get update
 
 sudo apt-get install -y \
