@@ -29,3 +29,4 @@ bash ${d}/keystone.sh
 bash ${d}/glance.sh
 bash ${d}/placement.sh
 bash ${d}/nova.sh
+bash ${d}/neutron.sh

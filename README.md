@@ -67,5 +67,24 @@ Mount virtfs inside VMs
 -----------------------
 
 ```bash
+source admin-openrc
 sudo mount -t 9p -o trans=virtio <tag> <mnt>
+```
+
+Disable and delete a component's service (compute)
+--------------------------------------------------
+
+List the compute services
+```bash
+openstack compute service list
+```
+
+Disable the service
+```bash
+openstack compute service set --disable <host> <binary>(nova-compute)
+```
+
+Delete the serivce
+```bash
+openstack compute service delete <service-id>/<binary>(nova-compute)
 ```

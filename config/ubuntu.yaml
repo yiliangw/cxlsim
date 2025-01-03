@@ -15,7 +15,7 @@ network:
       compute2:
         ip: 10.10.10.102
         mac: 52:54:00:11:11:03
-  service:
+  provider:
     bridge: baizebr1
     ip: 10.10.11.1
     mask_len: 24
@@ -50,5 +50,10 @@ id:
     placement_dbpass: *ospass
     nova_dbpass: *ospass
     neutron_dbpass: *ospass
-
-  
+local:
+  network:
+    management:
+      interface: enp0s2
+    provider:
+      interface: enp0s3 
+      bridge: provider-br

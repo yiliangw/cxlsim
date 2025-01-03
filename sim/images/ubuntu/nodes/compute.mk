@@ -1,5 +1,5 @@
 $(b)compute1/input.tar: $(addprefix $(b)compute1/input/, $(ubuntu_common_input) install.sh chrony.conf \
-	$(addprefix setup/, run.sh nova.sh nova.conf))
+	$(addprefix setup/, run.sh nova.sh nova.conf neutron.sh neutron/neutron.conf neutron/openvswitch_agent.ini))
 	mkdir -p $(@D)
 	tar -C $(@D)/input -cf $@ .
 

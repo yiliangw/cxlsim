@@ -11,7 +11,7 @@ qemu-ubuntu-%: $(o)nodes/%/root/disk.qcow2 $(o)nodes/%/secondary/disk.qcow2 $(ub
 	-drive file=$(word 2, $^),media=disk,format=qcow2,if=ide,index=1 \
 	-netdev bridge,id=net-management,br=$(call confget_ubuntu,.network.management.bridge) \
 	-device virtio-net-pci,netdev=net-management,mac=$(call confget_ubuntu,.network.management.nodes.$*.mac) \
-	-netdev bridge,id=net-service,br=$(call confget_ubuntu,.network.service.bridge) \
-	-device virtio-net-pci,netdev=net-service,mac=$(call confget_ubuntu,.network.service.nodes.$*.mac) \
+	-netdev bridge,id=net-provider,br=$(call confget_ubuntu,.network.provider.bridge) \
+	-device virtio-net-pci,netdev=net-provider,mac=$(call confget_ubuntu,.network.provider.nodes.$*.mac) \
 	-boot c \
 	-display none -serial mon:stdio

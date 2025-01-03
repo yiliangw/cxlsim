@@ -2,7 +2,7 @@ network:
   version: 2
   renderer: networkd
   ethernets:
-    enp0s2:
+    {{ .local.network.management.interface }}:
       dhcp4: false
       addresses:
         - {{ .local.network.management.ip }}/{{ .network.management.mask_len }}
@@ -12,7 +12,7 @@ network:
       routes:
         - to: default
           via: {{ .network.management.ip }}
-    enp0s3:
+    {{ .local.network.provider.interface }}:
       dhcp4: false
       addresses:
-        - {{ .local.network.service.ip }}/{{ .network.service.mask_len }}
+        - {{ .local.network.provider.ip }}/{{ .network.provider.mask_len }}

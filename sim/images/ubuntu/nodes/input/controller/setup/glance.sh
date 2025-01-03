@@ -33,10 +33,11 @@ sudo su -s /bin/sh -c "glance-manage db_sync" glance
 
 sudo systemctl restart glance-api
 
+sleep 3
+
 # Verify
-images=cirros-0.4.0-x86_64-disk.img
-wget -O /tmp/$images http://download.cirros-cloud.net/0.4.0/$images
-glance image-create --name "cirros" --file /tmp/$images --disk-format qcow2 \
+glance image-create --name "cirros" --file ${HOME}/images/cirros --disk-format qcow2 \
   --container-format bare --visibility public
+
 # Ensure there is cirros in the output, otherwise fail
 glance image-list | grep -q cirros
