@@ -1,5 +1,5 @@
 export ADMIN_PASS={{ .id.openstack.admin_pass }}
-export BAIZE_PASS={{ .id.openstack.user_pass }}
+export USER_PASS={{ .id.openstack.user_pass }}
 export GLANCE_PASS={{ .id.openstack.glance_pass }}
 export PLACEMENT_PASS={{ .id.openstack.placement_pass }}
 export NOVA_PASS={{ .id.openstack.nova_pass }}
@@ -12,3 +12,6 @@ export GLANCE_DBPASS={{ .id.openstack.glance_dbpass }}
 export PLACEMENT_DBPASS={{ .id.openstack.placement_dbpass }}
 export NOVA_DBPASS={{ .id.openstack.nova_dbpass }}
 export NEUTRON_DBPASS={{ .id.openstack.neutron_dbpass }}
+
+export USER_PROJECT={{ .id.openstack.user_project }}
+export USER_NAME={{ .id.openstack.user }}

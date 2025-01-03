@@ -29,7 +29,7 @@ $(o)%/secondary/disk.qcow2: $(ubuntu_base_secondary_img)
 	$(qemu_img) create -f qcow2 -F qcow2 -b $(shell realpath --relative-to=$(dir $@) $<) $@
 
 ubuntu_common_input := hostname hosts netplan.yaml \
-	$(addprefix env/, admin_openrc passwdrc user_openrc)
+	$(addprefix env/, openstackrc admin_openrc user_openrc)
 
 $(eval $(call include_rules,$(d)controller.mk))
 $(eval $(call include_rules,$(d)compute.mk))

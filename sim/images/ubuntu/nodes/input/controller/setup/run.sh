@@ -3,7 +3,7 @@ d=`dirname ${BASH_SOURCE[0]}`
 
 set -xe
 
-source ${HOME}/env/passwdrc
+source ${HOME}/env/openstackrc
 
 # SQL database
 sudo cp ${d}/mysql/99-openstack.cnf /etc/mysql/mariadb.conf.d

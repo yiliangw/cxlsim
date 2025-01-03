@@ -13,6 +13,8 @@ sudo systemctl restart \
   nova-compute \
   neutron-openvswitch-agent
 
+sleep 3
+
 # Verify
 ssh controller '\
   source ~/env/admin_openrc && \

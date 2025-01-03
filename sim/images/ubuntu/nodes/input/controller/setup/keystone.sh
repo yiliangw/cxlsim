@@ -34,7 +34,6 @@ sudo systemctl restart apache2
 openstack project create --domain default --description "Service Project" service 
 
 # Create a unprivileged project and user
-openstack project create --domain default --description "Baize Project" baize
-openstack user create --domain default --password $BAIZE_PASS baize
-openstack role create baize
-openstack role add --project baize --user baize baize
+openstack project create --domain default --description "User Project" $USER_PROJECT
+openstack user create --domain default --password $USER_PASS $USER_NAME 
+openstack role add --project $USER_PROJECT --user $USER_NAME member
