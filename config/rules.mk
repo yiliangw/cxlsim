@@ -10,8 +10,12 @@ $(yq):
 ubuntu_config := $(d)ubuntu.yaml
 ubuntu_sed := $(b)ubuntu.sed
 
+.PHONY: sed
+sed: $(ubuntu_sed)
+
+# $(1) - .yaml $(2) - .sed
 define yaml2sed
-$(yq) e '.. | select(. == "*") | "s/{{ ." + (path | join(".")) + " }}/" + . + "/g"' $(1) > $(2)
+sed 's/\//\\\//g' $(1) | $(yq) e '.. | select(. == "*") | "s/{{ ." + (path | join(".")) + " }}/" + . + "/g"' > $(2)
 endef
 
 $(b)%.sed: $(d)%.yaml $(yq)

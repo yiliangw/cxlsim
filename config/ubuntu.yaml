@@ -5,6 +5,7 @@ network:
     bridge: baizebr0
     ip: 10.10.10.1
     mask_len: 24
+    nameserver: 8.8.8.8
     nodes:
       controller:
         ip: 10.10.10.100
@@ -19,16 +20,24 @@ network:
     bridge: baizebr1
     ip: 10.10.11.1
     mask_len: 24
+    subnet: 10.10.11.0/24
+    gateway: 10.10.11.1
+    nameserver: 8.8.8.8
+    ip_pool:
+      start: 10.10.11.101
+      end: 10.10.11.250
     nodes:
       controller:
-        ip: 10.10.11.100
         mac: 52:54:00:11:22:01
       compute1:
-        ip: 10.10.11.101
         mac: 52:54:00:11:22:02
       compute2:
-        ip: 10.10.11.102
         mac: 52:54:00:11:22:03
+  openstack:
+    selfservice:
+      subnet: 172.16.1.0/24
+      gateway: 172.16.1.1
+      nameserver: 8.8.8.8
 id:
   system:
     user: &user baize
@@ -50,6 +59,18 @@ id:
     placement_dbpass: *ospass
     nova_dbpass: *ospass
     neutron_dbpass: *ospass
+instances:
+  client: &client_instance
+    vcpus: 1
+    ram: 1024 # (MB)
+    disk: 20 # (GB)
+  mysql:
+    server:
+      vcpus: 2
+      ram: 2048 # (MB)
+      disk: 40 # (GB)
+    client:
+      <<: *client_instance
 local:
   network:
     management:

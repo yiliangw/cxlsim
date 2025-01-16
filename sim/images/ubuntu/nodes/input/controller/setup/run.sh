@@ -1,6 +1,13 @@
 #!/bin/bash
 d=`dirname ${BASH_SOURCE[0]}`
 
+fdone=${d}/.done
+
+if [ -f $fdone ]; then
+    echo "Already set up"
+    exit 0
+fi
+
 set -xe
 
 source ${HOME}/env/openstackrc
@@ -30,3 +37,11 @@ bash ${d}/glance.sh
 bash ${d}/placement.sh
 bash ${d}/nova.sh
 bash ${d}/neutron.sh
+
+# Remote setup
+while ! ssh compute1 uptime; do
+    sleep 1
+done
+ssh compute1 'cd && bash setup/run.sh'
+
+touch $fdone

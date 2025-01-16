@@ -8,11 +8,7 @@ network:
         - {{ .local.network.management.ip }}/{{ .network.management.mask_len }}
       nameservers:
         addresses:
-          - 8.8.8.8
+          - {{ .network.management.nameserver }}
       routes:
         - to: default
           via: {{ .network.management.ip }}
-    {{ .local.network.provider.interface }}:
-      dhcp4: false
-      addresses:
-        - {{ .local.network.provider.ip }}/{{ .network.provider.mask_len }}
