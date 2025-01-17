@@ -1,0 +1,21 @@
+instances:
+  user:
+    name: user
+    password: pass
+  base:
+    ubuntu: &ubuntu_base
+      iso_url: https://cloud-images.ubuntu.com/daily/server/jammy/20241217/jammy-server-cloudimg-amd64.img
+      iso_cksum_url: https://cloud-images.ubuntu.com/daily/server/jammy/20241217/SHA256SUMS
+      disk: 40 # (GB)
+  client: &client_instance
+    <<: *ubuntu_base
+    vcpus: 1
+    ram: 1024 # (MB)
+    disk: 20 # (GB)
+  mysql:
+    server:
+      <<: *ubuntu_base
+      vcpus: 2
+      ram: 2048 # (MB)
+    client:
+      <<: *client_instance

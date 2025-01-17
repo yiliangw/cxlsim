@@ -44,6 +44,16 @@ variable "install_script" {
   type    = string
 }
 
+variable "user_name" {
+  type    = string
+  default = "baize"
+}
+
+variable "user_password" {
+  type    = string
+  default = "baize"
+}
+
 source "qemu" "disk" {
   output_directory = "${var.out_dir}"
   communicator     = "ssh"
@@ -64,8 +74,8 @@ source "qemu" "disk" {
     ["-boot", "c"]
   ]
   shutdown_command = "sudo shutdown -P now"
-  ssh_password     = "baize"
-  ssh_username     = "baize"
+  ssh_username     = "${var.user_name}"
+  ssh_password     = "${var.user_password}"
   ssh_timeout      = "3m"
   vm_name          = "${var.out_name}"
 }

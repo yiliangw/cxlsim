@@ -34,4 +34,5 @@ $(devstack_dir): $(devstack_zip)
 	unzip -o -d $(@D) $(devstack_zip)
 	mv $(@D)/devstack-* $@
 
+$(eval $(call include_rules,$(d)instances/rules.mk))
 $(eval $(call include_rules,$(d)ubuntu/rules.mk))
