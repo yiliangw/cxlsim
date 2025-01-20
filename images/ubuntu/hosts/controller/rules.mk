@@ -24,7 +24,6 @@ $(ubuntu_dimg_o)controller_phase2/disk.qcow2: $(ubuntu_dimg_o)controller_phase1/
 	-var "out_dir=$(@D)" \
 	-var "out_name=$(@F)" \
 	-var "input_tar_src=$(word 2,$^)" \
-	-var "input_tar_dst=/tmp/input.tar" \
 	-var "install_script=$(word 3,$^)" \
 	$(extend_hcl)
 
@@ -39,7 +38,6 @@ $(ubuntu_dimg_o)controller_phase1/disk.qcow2: $(ubuntu_base_dimg) $(b)phase1/inp
 	-var "out_dir=$(@D)" \
 	-var "out_name=$(@F)" \
 	-var "input_tar_src=$(word 2,$^)" \
-	-var "input_tar_dst=/tmp/input.tar" \
 	-var "install_script=$(word 3,$^)" \
 	$(extend_hcl)
 
@@ -71,8 +69,7 @@ $(b)phase2/input/%: $(b)controller.sed $(d)../common/phase2/input/%.tpl
 	sed -f $(word 1, $^) $(word 2, $^) > $@
 
 # Disk images
-# ubuntu_openstack_images := cirros.qcow2 mysql_server.qcow2 mysql_client.qcow2
-ubuntu_openstack_images := cirros.qcow2
+ubuntu_openstack_images := cirros.qcow2 mysql_server.qcow2 mysql_client.qcow2
 
 p2_imgs_input_prefix := $(b)phase2/input/setup/images/
 

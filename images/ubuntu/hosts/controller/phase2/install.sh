@@ -2,7 +2,7 @@ set -xe
 
 mkdir -p /tmp/input
 cd /tmp/input
-tar xf /tmp/input.tar
+tar xf /dev/sdb
 
 cp ssh/* ~/.ssh
 chmod 600 ~/.ssh/id_rsa

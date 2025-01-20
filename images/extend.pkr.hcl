@@ -28,10 +28,6 @@ variable "input_tar_src" {
   type    = string
 }
 
-variable "input_tar_dst" {
-  type    = string
-}
-
 variable "install_script" {
   type    = string
 }
@@ -54,6 +50,7 @@ source "qemu" "disk" {
     ["-machine", "q35,accel=kvm:tcg"],
     ["-cpu", "host"],
     ["-drive", "file=${var.out_dir}/${var.out_name},if=ide,index=0,media=disk,format=qcow2"],
+    ["-drive", "file=${var.input_tar_src},if=ide,index=1,media=disk,format=raw"],
     ["-boot", "c"],
   ]
   shutdown_command = "sudo shutdown -P now"
@@ -66,12 +63,6 @@ source "qemu" "disk" {
 
 build {
   sources = ["source.qemu.disk"]
-
-  provisioner "file" {
-    direction = "upload"
-    source = "${var.input_tar_src}"
-    destination = "${var.input_tar_dst}"
-  }
 
   provisioner "shell" {
     execute_command = "{{ .Vars }} bash '{{ .Path }}'"

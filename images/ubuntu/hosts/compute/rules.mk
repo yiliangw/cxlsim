@@ -24,7 +24,6 @@ $(ubuntu_dimg_o)compute%_phase2/disk.qcow2: $(ubuntu_dimg_o)compute%_phase1/disk
 	-var "out_dir=$(@D)" \
 	-var "out_name=$(@F)" \
 	-var "input_tar_src=$(word 2,$^)" \
-	-var "input_tar_dst=/tmp/input.tar" \
 	-var "install_script=$(word 3,$^)" \
 	$(extend_hcl)
 
@@ -39,7 +38,6 @@ $(ubuntu_dimg_o)compute%_phase1/disk.qcow2: $(ubuntu_base_dimg) $(b)compute%/pha
 	-var "out_dir=$(@D)" \
 	-var "out_name=$(@F)" \
 	-var "input_tar_src=$(word 2,$^)" \
-	-var "input_tar_dst=/tmp/input.tar" \
 	-var "install_script=$(word 3,$^)" \
 	$(extend_hcl)
 
