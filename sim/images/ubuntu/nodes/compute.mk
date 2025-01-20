@@ -3,6 +3,8 @@ $(b)compute1/input.tar: $(addprefix $(b)compute1/input/, $(ubuntu_common_input) 
 	mkdir -p $(@D)
 	tar -C $(@D)/input -cf $@ .
 
+INPUT_ALL += $(b)compute1/input.tar
+
 $(b)compute1/input/%: $(d)input/compute/%
 	mkdir -p $(@D)
 	cp $< $@

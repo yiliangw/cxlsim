@@ -7,12 +7,14 @@ ubuntu_base_secondary_img := $(o)secondary/disk.qcow2
 $(b)input.tar: $(addprefix $(b)input/, ssh/config ssh/id_rsa ssh/id_rsa.pub)
 	tar -C $(@D)/input -cf $@ .
 
+INPUT_ALL += $(b)input.tar
+
 $(b)input/%: $(d)input/%
 	mkdir -p $(@D)
 	cp $< $@
-$(b)input/%: $(ubuntu_sed) $(d)input/%.tpl
+$(b)input/%: $(d)input/%.tpl $(config_deps)
 	mkdir -p $(@D)
-	sed -f $(word 1, $^) $(word 2, $^) > $@
+	$(call confsed,$<,$@)
 
 .PRECIOUS: $(ubuntu_base_root_img) $(ubuntu_base_secondary_img)
 
@@ -35,9 +37,9 @@ $(ubuntu_base_secondary_img):
 	mkdir -p $(@D)
 	$(qemu_img) create -f qcow2 $@ $(UBUNTU_SECONDARY_DISK_SZ)
 
-$(b)user-data: $(d)user-data.tpl
+$(b)user-data: $(d)user-data.tpl $(config_deps)
 	mkdir -p $(@D)
-	sed -f $(ubuntu_sed) $< > $@
+	$(call confsed,$<,$@)
 
 $(b)meta-data:
 	mkdir -p $(@D)

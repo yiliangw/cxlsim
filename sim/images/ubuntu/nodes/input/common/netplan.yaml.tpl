@@ -5,10 +5,10 @@ network:
     {{ .local.network.management.interface }}:
       dhcp4: false
       addresses:
-        - {{ .local.network.management.ip }}/{{ .network.management.mask_len }}
+        - {{ .local.network.management.ip }}/{{ .openstack.network.management.mask_len }}
       nameservers:
         addresses:
-          - {{ .network.management.nameserver }}
+          - {{ .openstack.network.management.nameserver }}
       routes:
         - to: default
-          via: {{ .network.management.ip }}
+          via: {{ .openstack.network.management.gateway }}

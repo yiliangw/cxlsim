@@ -2,4 +2,4 @@ local:
   hostname: compute1
   network:
     management:
-      ip: {{ .network.management.nodes.compute1.ip }}
+      ip: {{ .openstack.network.management.hosts.compute1.ip }}

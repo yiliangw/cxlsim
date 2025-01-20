@@ -1,6 +1,6 @@
 [DEFAULT]
 nova_metadata_host = controller
-metadata_proxy_shared_secret = {{ .id.openstack.metadata_secret }}
+metadata_proxy_shared_secret = {{ .openstack.id.metadata_secret }}
 
 #
 # From neutron.metadata.agent

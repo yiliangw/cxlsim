@@ -3,7 +3,7 @@ log_dir = /var/log/nova
 lock_path = /var/lock/nova
 state_path = /var/lib/nova
 
-transport_url = rabbit://openstack:{{ .id.openstack.rabbit_pass }}@controller
+transport_url = rabbit://openstack:{{ .openstack.id.rabbit_pass }}@controller
 my_ip = {{ .local.network.management.ip }}
 
 #
@@ -2829,7 +2829,7 @@ project_domain_name = Default
 user_domain_name = Default
 project_name = service
 username = nova
-password = {{ .id.openstack.nova_pass }}
+password = {{ .openstack.id.nova_pass }}
 
 #
 # From keystonemiddleware.auth_token
@@ -4792,7 +4792,7 @@ auth_type = password
 user_domain_name = Default
 auth_url = http://controller:5000/v3
 username = placement
-password = {{ .id.openstack.placement_pass }}
+password = {{ .openstack.id.placement_pass }}
 
 #
 # From nova.conf

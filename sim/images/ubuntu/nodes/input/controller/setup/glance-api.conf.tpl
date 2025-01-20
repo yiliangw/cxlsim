@@ -1766,7 +1766,7 @@ enabled_backends=fs:file
 
 
 [database]
-connection = mysql+pymysql://glance:{{ .id.openstack.glance_dbpass }}@controller/glance
+connection = mysql+pymysql://glance:{{ .openstack.id.glance_dbpass }}@controller/glance
 backend = sqlalchemy
 
 #
@@ -5047,7 +5047,7 @@ project_domain_name = Default
 user_domain_name = Default
 project_name = service
 username = glance
-password = {{ .id.openstack.glance_pass }}
+password = {{ .openstack.id.glance_pass }}
 
 #
 # From keystonemiddleware.auth_token
@@ -5244,7 +5244,7 @@ auth_type = password
 user_domain_id = default
 username = glance
 system_scope = all
-password = {{ .id.openstack.glance_pass }}
+password = {{ .openstack.id.glance_pass }}
 endpoint_id = 340be3625e9b4239a6415d034e98aace
 region_name = RegionOne
 #

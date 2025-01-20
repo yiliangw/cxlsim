@@ -1,7 +1,7 @@
 [DEFAULT]
 core_plugin = ml2
 service_plugins = router
-transport_url = rabbit://openstack:{{ .id.openstack.rabbit_pass }}@controller
+transport_url = rabbit://openstack:{{ .openstack.id.rabbit_pass }}@controller
 auth_strategy = keystone
 notify_nova_on_port_status_changes = true
 notify_nova_on_port_data_changes = true
@@ -944,7 +944,7 @@ root_helper = "sudo /usr/bin/neutron-rootwrap /etc/neutron/rootwrap.conf"
 
 
 [database]
-connection = mysql+pymysql://neutron:{{ .id.openstack.neutron_dbpass }}@controller/neutron
+connection = mysql+pymysql://neutron:{{ .openstack.id.neutron_dbpass }}@controller/neutron
 
 #
 # From neutron.db
@@ -1324,7 +1324,7 @@ project_domain_name = Default
 user_domain_name = Default
 project_name = service
 username = neutron
-password = {{ .id.openstack.neutron_pass }} 
+password = {{ .openstack.id.neutron_pass }} 
 
 #
 # From keystonemiddleware.auth_token
@@ -1494,7 +1494,7 @@ user_domain_name = Default
 region_name = RegionOne
 project_name = service
 username = nova
-password = {{ .id.openstack.nova_pass }} 
+password = {{ .openstack.id.nova_pass }} 
 
 #
 # From neutron

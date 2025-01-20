@@ -2,4 +2,4 @@ local:
   hostname: controller
   network:
     management:
-      ip: {{ .network.management.nodes.controller.ip }} 
+      ip: {{ .openstack.network.management.hosts.controller.ip }} 

@@ -1,0 +1,107 @@
+openstack:
+  system:
+    user: &user baize
+    password: &pass baize
+  id:
+    user_project: *user
+    user: *user
+    admin_pass: &ospass baize
+    user_pass: *ospass
+    glance_pass: *ospass
+    placement_pass: *ospass
+    nova_pass: *ospass
+    neutron_pass: *ospass
+    rabbit_pass: *ospass
+    metadata_secret: *ospass
+    keystone_dbpass: *ospass
+    glance_dbpass: *ospass
+    placement_dbpass: *ospass
+    nova_dbpass: *ospass
+    neutron_dbpass: *ospass
+  network:
+    management:
+      subnet: 10.10.10.0/24
+      mask_len: 24
+      gateway: 10.10.10.1
+      nameserver: 8.8.8.8
+      hosts:
+        controller:
+          ip: 10.10.10.100
+          mac: 52:54:00:11:11:01
+        compute1:
+          ip: 10.10.10.101
+          mac: 52:54:00:11:11:02
+        compute2:
+          ip: 10.10.10.102
+          mac: 52:54:00:11:11:03
+    provider:
+      subnet: 10.10.11.0/24
+      mask_len: 24
+      gateway: 10.10.11.1
+      nameserver: 8.8.8.8
+      ip_pool:
+        start: 10.10.11.101
+        end: 10.10.11.250
+      hosts:
+        controller:
+          mac: 52:54:00:11:22:01
+        compute1:
+          mac: 52:54:00:11:22:02
+        compute2:
+          mac: 52:54:00:11:22:03
+    selfservice:
+      subnet: 10.10.12.0/24
+      mask_len: 24
+      gateway: 10.10.12.1
+      nameserver: 8.8.8.8
+      host_ip_list:
+        - &hostip1 10.10.12.11
+        - &hostip2 10.10.12.12 
+        - &hostip3 10.10.12.13
+        - &hostip4 10.10.12.14
+  instances:
+    user:
+      name: user
+      password: pass
+    base:
+      ubuntu: &ubuntu_base
+        iso_url: https://cloud-images.ubuntu.com/daily/server/jammy/20241217/jammy-server-cloudimg-amd64.img
+        iso_cksum_url: https://cloud-images.ubuntu.com/daily/server/jammy/20241217/SHA256SUMS
+        disk: 40 # (GB)
+    client: &client_instance
+      <<: *ubuntu_base
+      vcpus: 1
+      ram: 1024 # (MB)
+      disk: 20 # (GB)
+    mysql:
+      server:
+        <<: *ubuntu_base
+        vcpus: 2
+        ram: 2048 # (MB)
+        ip: *hostip1
+      client:
+        <<: *client_instance
+        ip: *hostip2
+host:
+  internet_if: eno1
+  qemu_mac_list:
+    - 52:54:00:11:11:01
+    - 52:54:00:11:11:02
+    - 52:54:00:11:11:03
+    - 52:54:00:11:11:04
+    - 52:54:00:11:11:05
+    - 52:54:00:11:11:06
+  bridges:
+    management:
+      name: baize-mana-br
+    provider:
+      name: baize-prov-br
+    selfservice:
+      name: baize-serv-br
+local:
+  network:
+    management:
+      interface: enp0s2
+    provider:
+      interface: enp0s3 
+      bridge: provider-br

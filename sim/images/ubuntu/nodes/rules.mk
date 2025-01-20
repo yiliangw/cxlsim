@@ -1,7 +1,7 @@
-$(o)%.yaml: $(d)%.yaml.tpl $(ubuntu_sed) $(ubuntu_config) $(yq)
+$(o)%.yaml: $(d)%.yaml.tpl $(config_deps)
 	mkdir -p $(@D)
-	sed -f $(ubuntu_sed) $< > $@.tmp
-	$(yq) eval-all 'select(fileIndex == 0) * select(fileIndex == 1) | explode(.) ' $@.tmp $(ubuntu_config) > $@
+	$(call confsed,$<,$@.tmp)
+	$(yq) eval-all 'select(fileIndex == 0) * select(fileIndex == 1) | explode(.) ' $@.tmp $(config_yaml) > $@
 	rm $@.tmp
 
 $(b)%.sed: $(o)%.yaml $(yq)

@@ -694,7 +694,7 @@ log_dir = /var/log/keystone
 
 [database]
 
-connection = mysql+pymysql://keystone:{{ .id.openstack.keystone_dbpass }}@controller/keystone
+connection = mysql+pymysql://keystone:{{ .openstack.id.keystone_dbpass }}@controller/keystone
 
 #
 # From oslo.db

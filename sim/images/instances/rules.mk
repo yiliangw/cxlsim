@@ -5,9 +5,9 @@ $(instances_seed_image): $(b)user-data $(b)meta-data
 	rm -f $@
 	cloud-localds $@ $^
 
-$(b)user-data: $(d)user-data.tpl $(instances_config)
+$(b)user-data: $(d)user-data.tpl $(config_deps)
 	mkdir -p $(@D)
-	$(call confsed,instances,$<,$@)
+	$(call confsed,$<,$@)
 
 $(b)meta-data:
 	mkdir -p $(@D)

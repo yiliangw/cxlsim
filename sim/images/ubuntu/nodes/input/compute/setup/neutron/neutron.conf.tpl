@@ -1,6 +1,6 @@
 [DEFAULT]
 core_plugin = ml2
-transport_url = rabbit://openstack:{{ .id.openstack.rabbit_pass }}@controller
+transport_url = rabbit://openstack:{{ .openstack.id.rabbit_pass }}@controller
 #
 # From neutron
 #

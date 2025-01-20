@@ -2,7 +2,7 @@
 # log_dir = /var/log/nova
 lock_path = /var/lock/nova
 state_path = /var/lib/nova
-transport_url = rabbit://openstack:{{ .id.openstack.rabbit_pass }}@controller:5672/
+transport_url = rabbit://openstack:{{ .openstack.id.rabbit_pass }}@controller:5672/
 my_ip = {{ .local.network.management.ip }}
 
 #
@@ -1098,7 +1098,7 @@ auth_strategy = keystone
 
 
 [api_database]
-connection = mysql+pymysql://nova:{{ .id.openstack.nova_dbpass }}@controller/nova_api
+connection = mysql+pymysql://nova:{{ .openstack.id.nova_dbpass }}@controller/nova_api
 #
 # The *Nova API Database* is a separate database which is used for information
 # which is used across *cells*. This database is mandatory since the Mitaka
@@ -1879,7 +1879,7 @@ connection = mysql+pymysql://nova:{{ .id.openstack.nova_dbpass }}@controller/nov
 
 
 [database]
-connection = mysql+pymysql://nova:{{ .id.openstack.nova_dbpass }}@controller/nova
+connection = mysql+pymysql://nova:{{ .openstack.id.nova_dbpass }}@controller/nova
 #
 # The *Nova Database* is the primary database which is used for information
 # local to a *cell*.
@@ -2826,7 +2826,7 @@ project_domain_name = Default
 user_domain_name = Default
 project_name = service
 username = nova
-password = {{ .id.openstack.nova_pass }}
+password = {{ .openstack.id.nova_pass }}
 
 #
 # From keystonemiddleware.auth_token
@@ -3678,9 +3678,9 @@ user_domain_name = Default
 region_name = RegionOne
 project_name = service
 username = neutron
-password = {{ .id.openstack.neutron_pass }}
+password = {{ .openstack.id.neutron_pass }}
 service_metadata_proxy = true
-metadata_proxy_shared_secret = {{ .id.openstack.metadata_secret }}
+metadata_proxy_shared_secret = {{ .openstack.id.metadata_secret }}
 
 #
 # Configuration options for neutron (network connectivity as a service).
@@ -4790,7 +4790,7 @@ auth_type = password
 user_domain_name = Default
 auth_url = http://controller:5000/v3
 username = placement
-password = {{ .id.openstack.placement_pass }}
+password = {{ .openstack.id.placement_pass }}
 
 #
 # From nova.conf
@@ -5273,7 +5273,7 @@ project_domain_name = Default
 project_name = service
 user_domain_name = Default
 username = nova
-password = {{ .id.openstack.nova_pass }}
+password = {{ .openstack.id.nova_pass }}
 
 #
 # Configuration options for service to service authentication using a service

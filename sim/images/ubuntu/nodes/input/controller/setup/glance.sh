@@ -36,7 +36,7 @@ sudo systemctl restart glance-api
 sleep 3
 
 # Verify
-glance image-create --name "cirros" --file ${HOME}/images/cirros --disk-format qcow2 \
+glance image-create --name "cirros" --file ${HOME}/images/cirros.qcow2 --disk-format qcow2 \
   --container-format bare --visibility public
 
 # Ensure there is cirros in the output, otherwise fail
