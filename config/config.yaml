@@ -1,7 +1,10 @@
+platform:
+  ubuntu:
+    user:
+      name: &user baize
+      password: &pass baize
 openstack:
-  system:
-    user: &user baize
-    password: &pass baize
+  platform:
   id:
     user_project: *user
     user: *user
@@ -27,13 +30,10 @@ openstack:
       hosts:
         controller:
           ip: 10.10.10.100
-          mac: 52:54:00:11:11:01
         compute1:
           ip: 10.10.10.101
-          mac: 52:54:00:11:11:02
         compute2:
           ip: 10.10.10.102
-          mac: 52:54:00:11:11:03
     provider:
       subnet: 10.10.11.0/24
       mask_len: 24
@@ -44,11 +44,8 @@ openstack:
         end: 10.10.11.250
       hosts:
         controller:
-          mac: 52:54:00:11:22:01
         compute1:
-          mac: 52:54:00:11:22:02
         compute2:
-          mac: 52:54:00:11:22:03
     selfservice:
       subnet: 10.10.12.0/24
       mask_len: 24

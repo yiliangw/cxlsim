@@ -41,6 +41,7 @@ help:
 $(eval $(call include_rules,$(d)config/rules.mk))
 $(eval $(call include_rules,$(d)utils/rules.mk))
 $(eval $(call include_rules,$(d)docker/rules.mk))
+$(eval $(call include_rules,$(d)images/rules.mk))
 $(eval $(call include_rules,$(d)sim/rules.mk))
 
 .PHONY: all

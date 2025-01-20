@@ -17,5 +17,3 @@ run-exp:
 	$(MAKE) start-simbricks-docker
 	$(simbricks_docker_exec) "python $(simbricks_run_script) $(SIMBRICKS_OPTIONS) $(exp_script)" 
 	$(MAKE) stop-simbricks-docker
-
-$(eval $(call include_rules,$(d)images/rules.mk))
