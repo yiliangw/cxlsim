@@ -52,7 +52,7 @@ $(b)compute%/phase2/input.tar: $(addprefix $(b)compute%/phase2/input/, \
 	mkdir -p $(@D)
 	tar -C $(@D)/input -cf $@ .
 
-INPUT_ALL += $(b)compute1/phase2/input.tar
+INPUT_TAR_ALL += $(b)compute1/phase2/input.tar
 
 $(o)compute%.yaml: $(d)compute%.yaml.tpl $(config_deps)
 	mkdir -p $(@D)

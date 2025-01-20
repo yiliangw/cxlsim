@@ -22,7 +22,7 @@ $(b)input.tar: $(b)run.sh
 	cp $< $(@D)/input
 	tar -C $(@D)/input -cf $@ .
 
-INPUT_ALL += $(b)input.tar
+INPUT_TAR_ALL += $(b)input.tar
 
 $(b)run.sh: $(d)run.sh.tpl $(config_deps)
 	mkdir -p $(@D)

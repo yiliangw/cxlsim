@@ -24,7 +24,7 @@ endef
 ALL_ALL :=
 CLEAN_ALL := 
 EXTERNAL_CLEAN_ALL := 
-INPUT_ALL :=
+INPUT_TAR_ALL :=
 
 define include_rules
 	$(eval makefile_stack := $(1) $(makefile_stack))
@@ -47,8 +47,9 @@ $(eval $(call include_rules,$(d)sim/rules.mk))
 .PHONY: all
 all: $(ALL_ALL)
 
+.PRECIOUS: $(INPUT_TAR_ALL)
 .PHONY: input
-input: $(INPUT_ALL)
+input: $(INPUT_TAR_ALL)
 
 .PHONY: clean
 clean: 

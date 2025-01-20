@@ -53,7 +53,7 @@ $(b)phase2/input.tar: $(addprefix $(b)phase2/input/, \
 	neutron/ml2_conf.ini neutron/openvswitch_agent.ini neutron/dhcp_agent.ini neutron/l3_agent.ini neutron/metadata_agent.ini instances.sh))
 	tar -C $(@D)/input -cf $@ .
 
-INPUT_ALL += $(b)phase2/input.tar
+INPUT_TAR_ALL += $(b)phase2/input.tar
 
 $(b)phase2/input/%: $(d)phase2/input/%
 	mkdir -p $(@D)

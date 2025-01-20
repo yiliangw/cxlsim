@@ -4,7 +4,7 @@ $(b)input.tar:
 	mkdir -p $(@D)
 	touch $@
 
-INPUT_ALL += $(b)input.tar
+INPUT_TAR_ALL += $(b)input.tar
 
 $(mysql_server_disk_image): $(d)install.sh $(b)input.tar $(instances_seed_image) $(packer) $(base_hcl) $(config_deps)
 	rm -rf $(@D)
