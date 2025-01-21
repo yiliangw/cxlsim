@@ -3681,7 +3681,7 @@ user_domain_name = Default
 region_name = RegionOne
 project_name = service
 username = neutron
-password = { .id.openstack.neutron_pass } 
+password = {{ .openstack.id.neutron_pass }} 
 
 #
 # Configuration options for neutron (network connectivity as a service).
@@ -5265,10 +5265,9 @@ password = {{ .openstack.id.placement_pass }}
 # Maximum value: 65535
 #serialproxy_port = 6083
 
-
 [service_user]
 send_service_user_token = true
-auth_url = https://controller:5000/v3/
+auth_url = http://controller:5000/v3/
 auth_strategy = keystone
 auth_type = password
 project_domain_name = Default

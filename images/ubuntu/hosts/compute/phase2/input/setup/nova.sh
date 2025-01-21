@@ -7,6 +7,9 @@ sudo tee /etc/nova/nova.conf < ${d}/nova.conf > /dev/null
 
 sudo systemctl restart nova-compute
 
+# Wait for nova-compute to start and register itself with the controller
+sleep 3
+
 # Let controller discover compute hosts:
 ssh controller '\
   cd && source env/admin_openrc && \
