@@ -1316,8 +1316,8 @@ connection = mysql+pymysql://neutron:{{ .openstack.id.neutron_dbpass }}@controll
 
 
 [keystone_authtoken]
-www_authenticate_uri = http://controller:5000
-auth_url = http://controller:5000
+www_authenticate_uri = http://controller:5000/v3/
+auth_url = http://controller:5000/v3/
 memcached_servers = controller:11211
 auth_type = password
 project_domain_name = Default
@@ -1487,7 +1487,7 @@ password = {{ .openstack.id.neutron_pass }}
 
 
 [nova]
-auth_url = http://controller:5000
+auth_url = http://controller:5000/v3/
 auth_type = password
 project_domain_name = Default
 user_domain_name = Default

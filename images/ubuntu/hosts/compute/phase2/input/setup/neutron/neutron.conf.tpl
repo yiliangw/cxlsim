@@ -939,7 +939,7 @@ root_helper = "sudo /usr/bin/neutron-rootwrap /etc/neutron/rootwrap.conf"
 
 
 [database]
-connection = sqlite:////var/lib/neutron/neutron.sqlite
+# connection = sqlite:////var/lib/neutron/neutron.sqlite
 
 #
 # From neutron.db

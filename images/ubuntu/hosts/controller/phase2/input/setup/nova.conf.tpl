@@ -2818,8 +2818,8 @@ api_servers = http://controller:9292
 
 
 [keystone_authtoken]
-www_authenticate_uri = http://controller:5000/
-auth_url = http://controller:5000/
+www_authenticate_uri = http://controller:5000/v3/
+auth_url = http://controller:5000/v3/
 memcached_servers = controller:11211
 auth_type = password
 project_domain_name = Default
@@ -3671,7 +3671,7 @@ password = {{ .openstack.id.nova_pass }}
 
 
 [neutron]
-auth_url = http://controller:5000
+auth_url = http://controller:5000/v3/
 auth_type = password
 project_domain_name = Default
 user_domain_name = Default
@@ -5266,7 +5266,7 @@ password = {{ .openstack.id.placement_pass }}
 
 [service_user]
 send_service_user_token = true
-auth_url = https://controller/identity
+auth_url = http://controller:5000/v3/
 auth_strategy = keystone
 auth_type = password
 project_domain_name = Default
