@@ -9,7 +9,7 @@ qemu-ubuntu-compute1: $(ubuntu_dimg_o)compute1/disk.qcow2 $(config_deps)
 	-boot c \
 	-display none -serial mon:stdio
 
-.PRECIOUS: $(ubuntu_dimg_o)compute%/disk.qcow2
+ubuntu_dimgs += $(ubuntu_dimg_o)compute1/disk.qcow2
 $(ubuntu_dimg_o)compute%/disk.qcow2: $(ubuntu_dimg_o)compute%_phase2/disk.qcow2
 	mkdir -p $(@D)
 	rm -f $@
@@ -47,7 +47,7 @@ $(b)compute%/phase1/input.tar:
 	mkdir -p $(@D)/input
 	tar -C $(@D)/input -cf $@ .
 
-$(b)compute%/phase2/input.tar: $(addprefix $(b)compute%/phase2/input/, \
+$(b)compute1/phase2/input.tar: $(addprefix $(b)compute1/phase2/input/, \
 	$(ubuntu_phase2_common_input) \
 	$(addprefix setup/, run.sh chrony.conf nova.sh nova.conf neutron.sh neutron/neutron.conf neutron/openvswitch_agent.ini))
 	mkdir -p $(@D)

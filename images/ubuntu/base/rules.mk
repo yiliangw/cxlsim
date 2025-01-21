@@ -1,6 +1,5 @@
 ubuntu_base_dimg := $(ubuntu_dimg_o)base/disk.qcow2
-.PRECIOUS: $(ubuntu_base_dimg)
-
+ubuntu_dimgs += $(ubuntu_base_dimg)
 $(ubuntu_base_dimg): $(b)input.tar $(b)seed.raw $(d)install.sh $(base_hcl) $(packer)
 	rm -rf $(@D) 
 	PACKER_CACHE_DIR=$(packer_cache_dir) \

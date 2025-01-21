@@ -1,5 +1,6 @@
 mysql_client_disk_image := $(o)disk/disk.qcow2
 
+.PRECIOUS: $(mysql_client_disk_image)
 $(mysql_client_disk_image): $(d)install.sh $(b)input.tar $(instances_seed_image) $(packer) $(base_hcl) $(config_deps)
 	rm -rf $(@D)
 	PACKER_CACHE_DIR=$(packer_cache_dir) \
