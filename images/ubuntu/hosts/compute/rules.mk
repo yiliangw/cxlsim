@@ -9,6 +9,7 @@ qemu-ubuntu-compute1: $(ubuntu_dimg_o)compute1/disk.qcow2 $(config_deps)
 	-boot c \
 	-display none -serial mon:stdio
 
+.PRECIOUS: $(ubuntu_dimg_o)compute%/disk.qcow2
 $(ubuntu_dimg_o)compute%/disk.qcow2: $(ubuntu_dimg_o)compute%_phase2/disk.qcow2
 	mkdir -p $(@D)
 	rm -f $@

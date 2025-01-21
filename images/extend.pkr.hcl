@@ -32,6 +32,11 @@ variable "install_script" {
   type    = string
 }
 
+variable "use_backing_file" {
+  type    = bool
+  default = true
+}
+
 source "qemu" "disk" {
   output_directory = "${var.out_dir}"
   communicator     = "ssh"
@@ -57,7 +62,7 @@ source "qemu" "disk" {
   ssh_password     = "baize"
   ssh_username     = "baize"
   ssh_timeout      = "3m"
-  use_backing_file = "true"
+  use_backing_file = "${var.use_backing_file}"
   vm_name          = "${var.out_name}"
 }
 

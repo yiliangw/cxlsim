@@ -9,6 +9,7 @@ qemu-ubuntu-controller: $(ubuntu_dimg_o)controller/disk.qcow2 $(config_deps)
 	-boot c \
 	-display none -serial mon:stdio
 
+.PRECIOUS: $(ubuntu_dimg_o)controller/disk.qcow2
 $(ubuntu_dimg_o)controller/disk.qcow2: $(ubuntu_dimg_o)controller_phase2/disk.qcow2
 	mkdir -p $(@D)
 	rm -f $@

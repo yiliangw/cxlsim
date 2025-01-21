@@ -14,5 +14,7 @@ sudo rm -rf /etc/netplan/*
 sudo cp netplan.yaml /etc/netplan/99-netplan-config.yaml
 sudo chmod 600 /etc/netplan/99-netplan-config.yaml
 
+sudo tee /etc/network/interfaces < interfaces > /dev/null
+
 cp -r env/ ~
 cp -r setup/ ~
