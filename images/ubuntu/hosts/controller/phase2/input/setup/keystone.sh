@@ -34,6 +34,14 @@ sudo systemctl restart apache2
 openstack project create --domain default --description "Service Project" service 
 
 # Create a unprivileged project and user
-openstack project create --domain default --description "User Project" $USER_PROJECT
-openstack user create --domain default --password $USER_PASS $USER_NAME 
+openstack project create --domain default --description "Non-Admin Project" $USER_PROJECT
+openstack user create --domain default --password $USER_PASS $USER_NAME
+openstack role create $USER_ROLE
+openstack role add --project $USER_PROJECT --user $USER_NAME $USER_ROLE
 openstack role add --project $USER_PROJECT --user $USER_NAME member
+
+# Verify
+. ~/env/admin_openrc
+openstack token issue
+. ~/env/user_openrc
+openstack token issue

@@ -4,12 +4,14 @@ platform:
       name: &user baize
       password: &pass baize
 openstack:
-  platform:
   id:
-    user_project: *user
-    user: *user
+    nonadmin:
+      project: myproject
+      user:
+        name: myuser
+        pass: mypass
+      role: myrole
     admin_pass: &ospass baize
-    user_pass: *ospass
     glance_pass: *ospass
     placement_pass: *ospass
     nova_pass: *ospass
