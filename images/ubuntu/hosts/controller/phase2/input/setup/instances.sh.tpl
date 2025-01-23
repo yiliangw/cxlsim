@@ -1,5 +1,5 @@
 #!/bin/bash
-d=`dirname ${BASH_SOURCE[0]`}
+d=`dirname ${BASH_SOURCE[0]}`
 
 set -xe
 
@@ -14,24 +14,35 @@ openstack subnet create --network provider \
   --dns-nameserver {{ .openstack.network.provider.nameserver }} --gateway {{ .openstack.network.provider.gateway }} \
   --subnet-range {{ .openstack.network.provider.subnet }} provider
 
+openstack port create --project {{ .openstack.id.nonadmin.project }} --network provider \
+  --fixed-ip ip-address={{ .openstack.instances.mysql.server.ip }} mysql.server
+openstack port create --project {{ .openstack.id.nonadmin.project }} --network provider \
+  --fixed-ip ip-address={{ .openstack.instances.mysql.client.ip }} mysql.client
+
 # Create flavors
 openstack flavor create --vcpus 1 --ram 64 --disk 1 m1.nano
-# openstack flavor create --vcpus {{ .openstack.instances.mysql.server.vcpus }} --ram {{ .openstack.instances.mysql.server.ram }} --disk {{ .openstack.instances.mysql.server.disk }} mysql.server 
-# openstack flavor create --vcpus {{ .openstack.instances.mysql.client.vcpus }} --ram {{ .openstack.instances.mysql.client.ram }} --disk {{ .openstack.instances.mysql.client.disk }} mysql.client
+openstack flavor create --vcpus {{ .openstack.instances.mysql.server.vcpus }} --ram {{ .openstack.instances.mysql.server.ram }} --disk {{ .openstack.instances.mysql.server.disk }} mysql.server 
+openstack flavor create --vcpus {{ .openstack.instances.mysql.client.vcpus }} --ram {{ .openstack.instances.mysql.client.ram }} --disk {{ .openstack.instances.mysql.client.disk }} mysql.client
+
+# Create images
+glance image-create --name "mysql.server" --file ${d}/images/mysql_server.qcow2 --disk-format qcow2 \
+  --container-format bare --visibility public
+glance image-create --name "mysql.client" --file ${d}/images/mysql_client.qcow2 --disk-format qcow2 \
+  --container-format bare --visibility public
 
 . ~/env/user_openrc
 
 # Self-service network
-openstack network create selfservice
-openstack subnet create --network selfservice \
-  --dns-nameserver {{ .openstack.network.selfservice.nameserver }} \
-  --gateway {{ .openstack.network.selfservice.gateway }} \
-  --subnet-range {{ .openstack.network.selfservice.subnet }}  selfservice
+# openstack network create selfservice
+# openstack subnet create --network selfservice \
+#   --dns-nameserver {{ .openstack.network.selfservice.nameserver }} \
+#   --gateway {{ .openstack.network.selfservice.gateway }} \
+#   --subnet-range {{ .openstack.network.selfservice.subnet }}  selfservice
 
-# Create the router
-openstack router create router && sleep 3
-openstack router add subnet router selfservice
-openstack router set router --external-gateway provider
+# # Create the router
+# openstack router create router && sleep 3
+# openstack router add subnet router selfservice
+# openstack router set router --external-gateway provider
 
 # Add the keypair
 openstack keypair create --public-key ~/.ssh/id_rsa.pub mykey
@@ -39,15 +50,11 @@ openstack keypair create --public-key ~/.ssh/id_rsa.pub mykey
 # Create security groups
 openstack security group rule create default --proto any --ingress
 
-# Launch instances
-# glance image-create --name "mysql_server" --file ${HOME}/images/mysql_server.qcow1 --disk-format qcow2 \
-#   --container-format bare --visibility public
-# glance image-create --name "mysql_client" --file ${HOME}/images/mysql_client.qcow1 --disk-format qcow2 \
-#   --container-format bare --visibility public
-
-. ~/env/user_openrc
-provider_net_id=$(openstack network show provider -f value -c id)
-openstack server create --flavor m1.nano --image cirros \
-  --nic net-id=${provider} --security-group default \
-  --key-name mykey provider-instance
-
+# Launch instances on the provider network
+# provider_net_id=$(openstack network show provider -f value -c id)
+openstack server create --flavor mysql.server --image mysql.server \
+  --port mysql.server --security-group default \
+  --key-name mykey mysql.server
+openstack server create --flavor mysql.client --image mysql.client \
+  --port mysql.client --security-group default \
+  --key-name mykey mysql.client 

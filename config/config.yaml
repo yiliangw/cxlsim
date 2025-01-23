@@ -44,10 +44,10 @@ openstack:
       ip_pool:
         start: 10.10.11.101
         end: 10.10.11.250
-      hosts:
-        controller:
-        compute1:
-        compute2:
+      host_ip_list:
+        - &provider_hostip1 10.10.11.111
+        - &provider_hostip2 10.10.11.112
+        - &provider_hostip3 10.10.11.113
     selfservice:
       subnet: 10.10.12.0/24
       mask_len: 24
@@ -77,10 +77,10 @@ openstack:
         <<: *ubuntu_base
         vcpus: 2
         ram: 2048 # (MB)
-        ip: *hostip1
+        ip: *provider_hostip1
       client:
         <<: *client_instance
-        ip: *hostip2
+        ip: *provider_hostip2
 host:
   internet_if: eno1
   qemu_mac_list:
