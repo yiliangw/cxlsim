@@ -70,7 +70,8 @@ $(b)phase2/input/%: $(b)controller.sed $(d)../common/phase2/input/%.tpl
 	sed -f $(word 1, $^) $(word 2, $^) > $@
 
 # Disk images
-ubuntu_openstack_images := cirros.qcow2 mysql_server.qcow2 mysql_client.qcow2
+# ubuntu_openstack_images := cirros.qcow2 mysql_server.qcow2 mysql_client.qcow2
+ubuntu_openstack_images := cirros.qcow2 
 
 p2_imgs_input_prefix := $(b)phase2/input/setup/images/
 

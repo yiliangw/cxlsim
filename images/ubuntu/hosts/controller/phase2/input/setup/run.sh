@@ -48,4 +48,6 @@ while ! ssh compute1 uptime; do
 done
 ssh compute1 'cd && bash setup/run.sh'
 
+sudo systemctl restart ovs-iface-up
+
 touch $fdone

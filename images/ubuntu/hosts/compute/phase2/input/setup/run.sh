@@ -18,4 +18,6 @@ source ~/env/openstackrc
 bash ${d}/nova.sh
 bash ${d}/neutron.sh
 
+sudo systemctl restart ovs-iface-up
+
 touch $fdone
