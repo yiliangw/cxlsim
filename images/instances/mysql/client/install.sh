@@ -1,8 +1,11 @@
 #!/bin/bash
-
 set -xe
 
-sudo systemctl mask systemd-networkd-wait-online
+sudo usermod -aG disk $USER
 
 sudo apt-get update
 sudo apt-get install -y net-tools mysql-client
+
+mkdir ~/input
+sudo tar -xf /dev/sdb -C ~/input  
+sudo chown -R $USER:$USER ~/input

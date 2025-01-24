@@ -4,7 +4,8 @@ set -xe
 export DEBIAN_FRONTEND=noninteractive
 
 sudo apt-get update && sudo apt-get install -y \
-  net-tools chrony python3-openstackclient python3-pip \
+  sshpass net-tools \
+  chrony python3-openstackclient python3-pip \
   mariadb-server python3-pymysql \
   rabbitmq-server \
   memcached python3-memcache \

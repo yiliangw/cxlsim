@@ -18,4 +18,4 @@ sudo mv ovs-iface-up.service /etc/systemd/system
 sudo systemctl enable ovs-iface-up
 
 cp -r env/ ~
-cp -r setup/ ~
+cp -r prepare/ ~

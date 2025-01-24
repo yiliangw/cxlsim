@@ -19,7 +19,6 @@ $(mysql_server_disk_image): $(d)install.sh $(b)input.tar $(instances_seed_image)
 	-var "seedimg=$(instances_seed_image)" \
 	-var "install_script=$(word 1,$^)" \
 	-var "input_tar_src=$(word 2,$^)" \
-	-var "input_tar_dst=/tmp/input.tar" \
 	-var "user_name=$(call confget,.openstack.instances.user.name)" \
 	-var "user_password=$(call confget,.openstack.instances.user.password)" \
 	$(base_hcl)

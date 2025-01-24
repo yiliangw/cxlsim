@@ -42,12 +42,13 @@ bash ${d}/placement.sh
 bash ${d}/nova.sh
 bash ${d}/neutron.sh
 
-# Remote setup
+# Prepare other hosts
 while ! ssh compute1 uptime; do
     sleep 1
 done
-ssh compute1 'cd && bash setup/run.sh'
+ssh compute1 'cd && bash prepare/run.sh'
 
-sudo systemctl restart ovs-iface-up
+# Launch instances
+bash ${d}/instances.sh
 
 touch $fdone

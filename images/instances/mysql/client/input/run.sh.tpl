@@ -2,7 +2,7 @@
 
 set -xe
 
-cat <<EOF | mysql -u testuser -p testpass -h {{ .openstack.instances.mysql.server.ip }} 
+cat <<EOF | mysql -u testuser -ptestpass -h {{ .openstack.instances.mysql.server.ip }} 
 SHOW DATABASES;
 USE testdb;
 CREATE TABLE example (id INT PRIMARY KEY, name VARCHAR(50));

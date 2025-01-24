@@ -49,9 +49,10 @@ $(b)phase1/input.tar:
 
 $(b)phase2/input.tar: $(addprefix $(b)phase2/input/, \
 	$(ubuntu_phase2_common_input) \
-	$(addprefix setup/, run.sh chrony.conf mysql/99-openstack.cnf memcached.conf etcd keystone.sh keystone.conf \
+	$(addprefix prepare/, run.sh chrony.conf mysql/99-openstack.cnf memcached.conf etcd keystone.sh keystone.conf \
 	glance.sh glance-api.conf placement.sh placement.conf nova.sh nova.conf neutron.sh neutron/neutron.conf \
-	neutron/ml2_conf.ini neutron/openvswitch_agent.ini neutron/dhcp_agent.ini neutron/l3_agent.ini neutron/metadata_agent.ini instances.sh))
+	neutron/ml2_conf.ini neutron/openvswitch_agent.ini neutron/dhcp_agent.ini neutron/l3_agent.ini neutron/metadata_agent.ini instances.sh) \
+	$(addprefix exp/, run.sh))
 	tar -C $(@D)/input -cf $@ .
 
 INPUT_TAR_ALL += $(b)phase2/input.tar
@@ -72,7 +73,7 @@ $(b)phase2/input/%: $(b)controller.sed $(d)../common/phase2/input/%.tpl
 # Disk images
 ubuntu_openstack_images := cirros.qcow2 mysql_server.qcow2 mysql_client.qcow2
 
-p2_imgs_input_prefix := $(b)phase2/input/setup/images/
+p2_imgs_input_prefix := $(b)phase2/input/prepare/images/
 
 $(b)phase2/input.tar: $(addprefix $(p2_imgs_input_prefix), $(ubuntu_openstack_images))
 

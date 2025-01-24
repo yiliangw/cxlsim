@@ -57,4 +57,4 @@ openstack server create --flavor mysql.server --image mysql.server \
   --key-name mykey mysql.server
 openstack server create --flavor mysql.client --image mysql.client \
   --port mysql.client --security-group default \
-  --key-name mykey mysql.client 
+  --key-name mykey mysql.client

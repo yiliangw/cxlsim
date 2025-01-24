@@ -11,7 +11,6 @@ $(ubuntu_base_dimg): $(b)input.tar $(b)seed.raw $(d)install.sh $(base_hcl) $(pac
 	-var "out_name=$(@F)" \
 	-var "seedimg=$(word 2,$^)" \
 	-var "input_tar_src=$(word 1,$^)" \
-	-var "input_tar_dst=/tmp/input.tar" \
 	-var "install_script=$(word 3,$^)" \
 	$(base_hcl)
 

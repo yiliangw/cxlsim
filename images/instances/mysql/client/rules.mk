@@ -13,18 +13,15 @@ $(mysql_client_disk_image): $(d)install.sh $(b)input.tar $(instances_seed_image)
 	-var "seedimg=$(instances_seed_image)" \
 	-var "install_script=$(word 1,$^)" \
 	-var "input_tar_src=$(word 2,$^)" \
-	-var "input_tar_dst=/tmp/input.tar" \
 	-var "user_name=$(call confget,.openstack.instances.user.name)" \
 	-var "user_password=$(call confget,.openstack.instances.user.password)" \
 	$(base_hcl)
 
-$(b)input.tar: $(b)run.sh
-	mkdir -p $(@D)/input
-	cp $< $(@D)/input
+$(b)input.tar: $(b)input/run.sh 
 	tar -C $(@D)/input -cf $@ .
 
 INPUT_TAR_ALL += $(b)input.tar
 
-$(b)run.sh: $(d)run.sh.tpl $(config_deps)
+$(b)input/run.sh: $(d)input/run.sh.tpl $(config_deps)
 	mkdir -p $(@D)
 	$(call confsed,$<,$@)
