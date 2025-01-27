@@ -1,18 +1,13 @@
 # syntax=docker/dockerfile:1
-ARG UBUNTU_VERSION=22.04
-FROM ubuntu:${UBUNTU_VERSION} AS base
+FROM baize/simbricks-build AS base
 
 ARG WORKDIR=/workspace
 
 RUN mkdir -p ${WORKDIR}
 WORKDIR ${WORKDIR}
 
-# For building kernel
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
-    build-essential libncurses-dev gawk flex bison \
-    openssl libssl-dev dkms libelf-dev libudev-dev \
-    libpci-dev libiberty-dev autoconf llvm bc bear 
+    cloud-image-utils qemu-system-x86 zip libguestfs-tools \
+    python3-yaml python3-pip
 
-# Other utilities
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
-    cloud-image-utils qemu-system-x86 zip
+Run pip3 install easydict

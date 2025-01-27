@@ -1,14 +1,14 @@
 DOCKER_BUILD_DIR := $(d) 
 DOCKER_WORKDIR := /workspace/$(notdir $(shell pwd))
 
-SIMBRICKS_DOCKER_IMAGE := simbricks/simbricks-build
+SIMBRICKS_DOCKER_IMAGE := baize/simbricks-build
 SIMBRICKS_DOCKER_NAME := baize_simbricks_build_
 
 simbricks_dir ?= $(project_root)sim/simbricks/
 simbricks_dockerfile := $(simbricks_dir)docker/Dockerfile.buildenv
 
 UBUNTU_DOCKER_FILE := $(d)Dockerfile.ubuntu
-UBUNTU_DOCKER_IMAGE := baize-ubuntu
+UBUNTU_DOCKER_IMAGE := baize/ubuntu
 UBUNTU_DOCKER_NAME := baize_ubuntu_ 
 
 simbricks_docker_exec := docker exec $(SIMBRICKS_DOCKER_NAME) /bin/bash -c
