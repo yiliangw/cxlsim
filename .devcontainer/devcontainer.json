@@ -1,0 +1,19 @@
+{
+	"name": "baize",
+	"dockerComposeFile": "docker-compose.yml",
+	"service": "ubuntu-dev",
+	"privileged": true,
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-python.python",
+				"ms-vscode.cpptools",
+				"mshr-h.veriloghdl",
+				"surfer-project.surfer",
+				"llvm-vs-code-extensions.vscode-clangd",
+			]
+		}
+	},
+	"workspaceFolder": "/workspace",
+	"remoteUser": "${localEnv:USER}"
+}

@@ -1,0 +1,80 @@
+# syntax=docker/dockerfile:1
+ARG REGISTRY=
+ARG TAG=latest
+
+ARG TZ=Asia/Singapore
+
+# simbricks-build
+FROM ubuntu:jammy
+RUN apt-get update \
+ && DEBIAN_FRONTEND=noninteractive \
+    TZ=${TZ} \
+    apt-get install -y \
+	apt-utils \
+	autoconf \
+	bc \
+	bison \
+	build-essential \
+	cmake \
+	doxygen \
+	g++ \
+	flex \
+	git \
+	kmod \
+	libboost-coroutine-dev \
+	libboost-fiber-dev \
+	libboost-iostreams-dev \
+	libelf-dev \
+	libglib2.0-dev \
+	libgoogle-perftools-dev \
+	libpcap-dev \
+	libpixman-1-dev \
+	libprotobuf-dev \
+	ninja-build \
+	protobuf-compiler \
+	python-is-python3 \
+	python3-dev \
+	python3-sphinx \
+	python3-sphinx-rtd-theme \
+	rsync \
+	scons \
+	unzip \
+	wget \
+	nano \
+	vim \
+ && rm -rf /var/lib/apt/lists/*
+
+ARG VERILATOR_PATCH=verilator.patch
+COPY $VERILATOR_PATCH /tmp/
+RUN cd /tmp \
+ && git clone -b v4.010 https://github.com/verilator/verilator \
+ && cd verilator \
+ && patch -p1 < /tmp/verilator.patch \
+ && autoupdate \
+ && autoconf \
+ && ./configure \
+ && make -j`nproc` \
+ && make install \
+ && rm -rf /tmp/verilator
+
+# additional packages
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    cloud-image-utils \
+    qemu-system-x86 \
+    libguestfs-tools \
+    python3-yaml \
+    python3-pip \
+		sudo \
+    && rm -rf /var/lib/apt/lists/* \
+    && pip3 install easydict
+
+# Add non-root user.
+ARG USER_NAME=baize
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+RUN groupadd --gid $USER_GID $USER_NAME \
+ && useradd --uid $USER_UID --gid $USER_GID -m $USER_NAME --shell /bin/bash -m -d /home/${USER_NAME} \
+# Add sudo support for this user and remove the need to type in password.
+ && echo $USER_NAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USER_NAME \
+ && chmod 0440 /etc/sudoers.d/$USER_NAME

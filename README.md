@@ -4,34 +4,43 @@ Baize
 Quick Start
 ===========
 
+Most of the project's dependencies are managed with Docker.
+After building the images, you can access the environment either by working with Visual Studio Code's dev container or by starting the container with an interactive shell.
+
 Prerequisites:
 
-- `git`, `make`, `docker`, `cloud-localds` and `qemu-system` has been installed on the system
+- `git`, `make` and `docker` (with docker compose plugin) have been installed on the system.
 
-- sudo is enabled for the current user
+- sudo is enabled for the current user.
 
 Steps:
 
-1. Initialize submodules
-```bash
-git submodules update --init --recursive --depth 1
-```
+1. Initialize submodules:
+    ```bash
+    git submodules update --init --recursive --depth 1
+    ```
 
-2. Add the current user to group `docker` and `kvm`
-```bash
-sudo usermod -aG docker $USER
-sudo usermod -aG kvm $USER
-```
+2. Add the current user to `docker` and `kvm` groups:
+    ```bash
+    sudo usermod -aG docker $USER
+    sudo usermod -aG kvm $USER
+    ```
 
-3. Prepare docker images
-```bash
-make build-docker-images
-```
+3. Configure the image's user information in `.devcontainer/rules.mk`. By default, the created user will have the same user ID and group ID as the current user on the host. This avoids any conflicts in the file system. 
 
-4. Build Simbricks
-```bash
-make build-simbricks
-```
+4. Build the image for the dev container:
+    ```bash
+    make devcontainer
+    ```
+
+5. Access the environment with either of the two options:
+    - Reopen the project in the dev container with Visual Studio Code.
+    - Run the container and start an interacting shell by running `make run-devcontainer`. 
+
+6. Build Simbricks in the container:
+    ```bash
+    make build-simbricks
+    ```
 
 Run QEMU VMs with virtual LAN
 --------------------------------

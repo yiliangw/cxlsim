@@ -1,0 +1,17 @@
+services:
+  ubuntu-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.ubuntu
+      args:
+        USER_NAME: ${CONTAINER_USER_NAME:-baize}
+        USER_UID: ${CONTAINER_USER_UID:-1020}
+        USER_GID: ${CONTAINER_USER_GID:-1001} 
+    volumes:
+      - ..:/workspace:cached
+    devices:
+      - /dev/kvm:/dev/kvm
+    cap_add:
+      - ALL
+    working_dir: /workspace
+    command: sleep infinity
