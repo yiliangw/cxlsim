@@ -1,22 +1,25 @@
 ubuntu_base_dimg := $(ubuntu_dimg_o)base/disk.qcow2
 ubuntu_dimgs += $(ubuntu_base_dimg)
 $(ubuntu_base_dimg): $(b)input.tar $(b)seed.raw $(d)install.sh $(base_hcl) $(packer)
-	rm -rf $(@D) 
-	PACKER_CACHE_DIR=$(packer_cache_dir) \
-	$(packer) build \
+	rm -rf $(@D)
+	$(packer_run) build \
 	-var "disk_size=$(UBUNTU_ROOT_DISK_SZ)" \
 	-var "iso_url=$(UBUNTU_ISO_URL)" \
 	-var "iso_cksum_url=$(UBUNTU_ISO_CKSUM_URL)" \
 	-var "out_dir=$(@D)" \
 	-var "out_name=$(@F)" \
+	-var "cpus=$(shell echo $$((`nproc` / 2)))" \
+	-var "memory=$(shell echo $$((`free -m | awk '/^Mem:/ {print $$4}'` / 2)))" \
 	-var "seedimg=$(word 2,$^)" \
 	-var "input_tar_src=$(word 1,$^)" \
 	-var "install_script=$(word 3,$^)" \
 	$(base_hcl)
 
-$(b)input.tar:
+$(b)input.tar: $(linux_dir)README
 	rm -rf $(@D)/input
 	mkdir -p $(@D)/input
+	cp -r $(linux_dir) $(@D)/input/linux
+	$(MAKE) -C $(@D)/input/linux mrproper
 	tar -C $(@D)/input -cf $@ .
 
 $(ubuntu_base_secondary_img):
@@ -35,3 +38,17 @@ $(b)seed.raw: $(b)user-data $(b)meta-data
 	mkdir -p $(@D)
 	rm -f $@
 	cloud-localds $@ $^
+
+$(o)basetmp/disk.qcow2: $(ubuntu_base_dimg)
+	mkdir -p $(@D)
+	rm -f $@
+	$(qemu_img) create -f qcow2 -o backing_file=$(realpath --relative-to=$(@D) $<) -F qcow2 $@
+	
+.PHONY: qemu-ubuntu-basetmp
+qemu-ubuntu-basetmp: $(o)basetmp/disk.qcow2
+	sudo -E $(qemu) -machine q35,accel=kvm -cpu host -smp $(shell echo $$((`nproc` / 2))) -m $(shell echo $$((`free -m | awk '/^Mem:/ {print $$4}'` / 2)))M  \
+	-drive file=$(word 1, $^),media=disk,format=qcow2,if=ide,index=0 \
+	-netdev user,id=user-net \
+	-device virtio-net-pci,netdev=user-net \
+	-boot c \
+	-display none -serial mon:stdio

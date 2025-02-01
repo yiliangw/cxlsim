@@ -53,6 +53,7 @@ source "qemu" "disk" {
   net_device       = "virtio-net"
   qemuargs         = [
     ["-machine", "q35,accel=kvm:tcg"],
+    ["-enable-kvm"],
     ["-cpu", "host"],
     ["-drive", "file=${var.out_dir}/${var.out_name},if=ide,index=0,media=disk,format=qcow2"],
     ["-drive", "file=${var.input_tar_src},if=ide,index=1,media=disk,format=raw"],

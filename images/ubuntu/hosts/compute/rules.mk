@@ -18,8 +18,7 @@ $(ubuntu_dimg_o)compute%/disk.qcow2: $(ubuntu_dimg_o)compute%_phase2/disk.qcow2
 $(ubuntu_dimg_o)compute%_phase2/disk.qcow2: $(ubuntu_dimg_o)compute%_phase1/disk.qcow2 $(b)compute%/phase2/input.tar $(d)phase2/install.sh $(extend_hcl) $(packer)
 	rm -rf $(@D)
 	mkdir -p $(dir $(@D))
-	PACKER_CACHE_DIR=$(packer_cache_dir) \
-	$(packer) build \
+	$(packer_run) build \
 	-var "base_img=$(word 1,$^)" \
 	-var "disk_size=$(UBUNTU_ROOT_DISK_SZ)" \
 	-var "out_dir=$(@D)" \
@@ -32,8 +31,7 @@ $(ubuntu_dimg_o)compute%_phase2/disk.qcow2: $(ubuntu_dimg_o)compute%_phase1/disk
 $(ubuntu_dimg_o)compute%_phase1/disk.qcow2: $(ubuntu_base_dimg) $(b)compute%/phase1/input.tar $(d)phase1/install.sh $(extend_hcl) $(packer) 
 	rm -rf $(@D)
 	mkdir -p $(dir $(@D))
-	PACKER_CACHE_DIR=$(packer_cache_dir) \
-	$(packer) build \
+	$(packer_run) build \
 	-var "base_img=$(word 1,$^)" \
 	-var "disk_size=$(UBUNTU_ROOT_DISK_SZ)" \
 	-var "out_dir=$(@D)" \

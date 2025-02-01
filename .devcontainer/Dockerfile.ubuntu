@@ -77,4 +77,5 @@ RUN groupadd --gid $USER_GID $USER_NAME \
  && useradd --uid $USER_UID --gid $USER_GID -m $USER_NAME --shell /bin/bash -m -d /home/${USER_NAME} \
 # Add sudo support for this user and remove the need to type in password.
  && echo $USER_NAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USER_NAME \
+ && usermod -aG sgx $USER_NAME \
  && chmod 0440 /etc/sudoers.d/$USER_NAME

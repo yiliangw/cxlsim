@@ -9,8 +9,7 @@ INPUT_TAR_ALL += $(b)input.tar
 .PRECIOUS: $(mysql_server_disk_image)
 $(mysql_server_disk_image): $(d)install.sh $(b)input.tar $(instances_seed_image) $(packer) $(base_hcl) $(config_deps)
 	rm -rf $(@D)
-	PACKER_CACHE_DIR=$(packer_cache_dir) \
-	$(packer) build \
+	$(packer_run) build \
 	-var "iso_url=$(call confget,.openstack.instances.mysql.server.iso_url)" \
 	-var "iso_cksum_url=$(call confget,.openstack.instances.mysql.server.iso_cksum_url)" \
 	-var "disk_size=$(call confget,.openstack.instances.mysql.server.disk)G" \
