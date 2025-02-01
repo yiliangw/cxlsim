@@ -1,16 +1,18 @@
 ubuntu_base_dimg := $(ubuntu_dimg_o)base/disk.qcow2
 ubuntu_dimgs += $(ubuntu_base_dimg)
-$(ubuntu_base_dimg): $(b)input.tar $(b)seed.raw $(d)install.sh $(base_hcl) $(packer)
+$(ubuntu_base_dimg): $(b)input.tar $(b)seed.raw $(d)install.sh $(platform_config_deps) $(base_hcl) $(packer)
 	rm -rf $(@D)
 	$(packer_run) build \
-	-var "disk_size=$(UBUNTU_ROOT_DISK_SZ)" \
-	-var "iso_url=$(UBUNTU_ISO_URL)" \
-	-var "iso_cksum_url=$(UBUNTU_ISO_CKSUM_URL)" \
+	-var "disk_size=$(call conffget,platform,.ubuntu.disk.size)" \
+	-var "iso_url=$(call conffget,platform,.ubuntu.disk.iso_url)" \
+	-var "iso_cksum_url=$(call conffget,platform,.ubuntu.disk.iso_cksum_url)" \
 	-var "out_dir=$(@D)" \
 	-var "out_name=$(@F)" \
 	-var "cpus=$(shell echo $$((`nproc` / 2)))" \
 	-var "memory=$(shell echo $$((`free -m | awk '/^Mem:/ {print $$4}'` / 2)))" \
 	-var "seedimg=$(word 2,$^)" \
+	-var "user_name=$(call conffget,platform,.ubuntu.user.name)" \
+	-var "user_password=$(call conffget,platform,.ubuntu.user.password)" \
 	-var "input_tar_src=$(word 1,$^)" \
 	-var "install_script=$(word 3,$^)" \
 	$(base_hcl)
@@ -26,9 +28,9 @@ $(ubuntu_base_secondary_img):
 	mkdir -p $(@D)
 	$(qemu_img) create -f qcow2 $@ $(UBUNTU_SECONDARY_DISK_SZ)
 
-$(b)user-data: $(d)user-data.tpl $(config_deps)
+$(b)user-data: $(d)user-data.tpl $(platform_config_deps)
 	mkdir -p $(@D)
-	$(call confsed,$<,$@)
+	$(call conffsed,platform,$<,$@)
 
 $(b)meta-data:
 	mkdir -p $(@D)

@@ -1,7 +1,3 @@
-UBUNTU_ISO_URL := https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img
-UBUNTU_ISO_CKSUM_URL := https://cloud-images.ubuntu.com/jammy/current/SHA256SUMS
-
-UBUNTU_ROOT_DISK_SZ := 250G
 UBUNTU_SECONDARY_DISK_SZ := 250G
 
 # Disk images output directory

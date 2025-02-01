@@ -1,0 +1,7 @@
+local:
+  network:
+    management:
+      interface: enp0s2
+    provider:
+      interface: enp0s3 
+      bridge: provider-br

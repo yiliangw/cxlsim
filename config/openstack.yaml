@@ -1,8 +1,3 @@
-platform:
-  ubuntu:
-    user:
-      name: &user baize
-      password: &pass baize
 openstack:
   id:
     nonadmin:
@@ -64,8 +59,8 @@ openstack:
       password: pass
     base:
       ubuntu: &ubuntu_base
-        iso_url: https://cloud-images.ubuntu.com/daily/server/jammy/20241217/jammy-server-cloudimg-amd64.img
-        iso_cksum_url: https://cloud-images.ubuntu.com/daily/server/jammy/20241217/SHA256SUMS
+        iso_url: https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img
+        iso_cksum_url: https://cloud-images.ubuntu.com/jammy/current/SHA256SUMS
         disk: 40 # (GB)
     client: &client_instance
       <<: *ubuntu_base
@@ -81,26 +76,3 @@ openstack:
       client:
         <<: *client_instance
         ip: *provider_hostip2
-host:
-  internet_if: eno1
-  qemu_mac_list:
-    - 52:54:00:11:11:01
-    - 52:54:00:11:11:02
-    - 52:54:00:11:11:03
-    - 52:54:00:11:11:04
-    - 52:54:00:11:11:05
-    - 52:54:00:11:11:06
-  bridges:
-    management:
-      name: baize-mana-br
-    provider:
-      name: baize-prov-br
-    selfservice:
-      name: baize-serv-br
-local:
-  network:
-    management:
-      interface: enp0s2
-    provider:
-      interface: enp0s3 
-      bridge: provider-br
