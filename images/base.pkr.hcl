@@ -42,12 +42,10 @@ variable "install_script" {
 
 variable "user_name" {
   type    = string
-  default = "baize"
 }
 
 variable "user_password" {
   type    = string
-  default = "baize"
 }
 
 source "qemu" "disk" {

@@ -3,9 +3,10 @@ PACKER_ZIP_URL := https://releases.hashicorp.com/packer/$(PACKER_VERSION)/packer
 
 qemu := qemu-system-x86_64
 qemu_img := qemu-img
+virt_copy_out := virt-copy-out
 
 packer := $(b)packer
-packer_run := PACKER_PLUGIN_PATH=$(b).packer_plugins/ PACKER_CACHE_DIR=$(b).packer_cache/ $(b)packer
+packer_run := PACKER_PLUGIN_PATH=$(b).packer_plugins/ PACKER_CACHE_DIR=$(b).packer_cache/ $(packer)
 packer_zip := $(b)packer.zip
 
 base_hcl := $(d)base.pkr.hcl
@@ -16,9 +17,13 @@ extend_hcl := $(d)extend.pkr.hcl
 
 $(packer): $(packer_zip)
 	mkdir -p $(@D)
-	unzip -o -d $(@D) $(packer_zip)
+	unzip -o -d $(@D) $<
 	$(packer_run) plugins install github.com/hashicorp/qemu
 	touch $@
+
+$(packer_zip):
+	mkdir -p $(@D)
+	wget -O $@ $(PACKER_ZIP_URL)
 
 linux_dir := $(project_root)apps/linux/
 

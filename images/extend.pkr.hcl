@@ -1,6 +1,6 @@
 variable "cpus" {
   type    = number
-  default = 4
+ default = 4
 }
 
 variable "memory" {
@@ -37,6 +37,14 @@ variable "use_backing_file" {
   default = true
 }
 
+variable "user_name" {
+  type    = string
+}
+
+variable "user_password" {
+  type    = string
+}
+
 source "qemu" "disk" {
   output_directory = "${var.out_dir}"
   communicator     = "ssh"
@@ -50,6 +58,7 @@ source "qemu" "disk" {
   headless         = true
   iso_url          = "${var.base_img}"
   iso_checksum     = "none"
+  use_backing_file = "${var.use_backing_file}"
   net_device       = "virtio-net"
   qemuargs         = [
     ["-machine", "q35,accel=kvm:tcg"],
@@ -60,10 +69,9 @@ source "qemu" "disk" {
     ["-boot", "c"],
   ]
   shutdown_command = "sudo shutdown -P now"
-  ssh_password     = "baize"
-  ssh_username     = "baize"
+  ssh_username     = "${var.user_name}"
+  ssh_password     = "${var.user_password}"
   ssh_timeout      = "3m"
-  use_backing_file = "${var.use_backing_file}"
   vm_name          = "${var.out_name}"
 }
 

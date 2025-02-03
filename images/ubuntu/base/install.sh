@@ -25,12 +25,14 @@ export DEBIAN_FRONTEND=noninteractive && sudo -E apt-get install -y \
   bc \
   dwarves
 
-mkdir ~/input
-cd ~/input
+mkdir /tmp/input
+cd /tmp/input
 sudo tar xf /dev/sdb
 sudo chown -R $(id -u):$(id -g) .
 
-cd linux
+cp -r linux/ ~/linux
+
+cd ~/linux
 cp /boot/config-* .config
 ./scripts/config --set-str SYSTEM_TRUSTED_KEYS ""
 ./scripts/config --disable MODULE_SIG_CERT
@@ -40,6 +42,21 @@ cp /boot/config-* .config
 ./scripts/config --disable CONFIG_CFG80211
 ./scripts/config --disable CONFIG_MAC80211
 ./scripts/config --disable CONFIG_IWLWIFI
+./scripts/config --disable CONFIG_BT
+
+./scripts/config --disable WLAN_VENDOR_INTEL
+./scripts/config --disable WLAN_VENDOR_REALTEK
+./scripts/config --disable WLAN_VENDOR_ATH
+./scripts/config --disable WLAN_VENDOR_BROADCOM
+./scripts/config --disable WLAN_VENDOR_CISCO
+./scripts/config --disable WLAN_VENDOR_MARVELL
+./scripts/config --disable WLAN_VENDOR_MEDIATEK
+./scripts/config --disable WLAN_VENDOR_RSI
+./scripts/config --disable WLAN_VENDOR_ST
+./scripts/config --disable WLAN_VENDOR_TI
+
+./scripts/config --disable CONFIG_SOUND
+./scripts/config --disable CONFIG_INFINIBAND
 
 yes "" | make oldconfig
 

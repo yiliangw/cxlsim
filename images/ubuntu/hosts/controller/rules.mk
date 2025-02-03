@@ -28,14 +28,16 @@ $(ubuntu_dimg_o)controller_phase2/disk.qcow2: $(ubuntu_dimg_o)controller_phase1/
 	$(extend_hcl)
 
 .PRECIOUS: $(ubuntu_dimg_o)controller_phase1/disk.qcow2
-$(ubuntu_dimg_o)controller_phase1/disk.qcow2: $(ubuntu_base_dimg) $(b)phase1/input.tar $(d)phase1/install.sh $(extend_hcl) $(packer) 
+$(ubuntu_dimg_o)controller_phase1/disk.qcow2: $(ubuntu_base_dimg) $(b)phase1/input.tar $(d)phase1/install.sh $(extend_hcl) $(packer)
 	rm -rf $(@D)
 	mkdir -p $(dir $(@D))
 	$(packer_run) build \
-	-var "base_img=$(word 1,$^)" \
-	-var "disk_size=$(UBUNTU_ROOT_DISK_SZ)" \
+	-var "base_img=$<" \
+	-var "disk_size=$(call conffget,platform,.ubuntu.disk.size)" \
 	-var "out_dir=$(@D)" \
 	-var "out_name=$(@F)" \
+	-var "user_name=$(call conffget,platform,.ubuntu.user.name)" \
+	-var "user_password=$(call conffget,platform,.ubuntu.user.password)" \
 	-var "input_tar_src=$(word 2,$^)" \
 	-var "install_script=$(word 3,$^)" \
 	$(extend_hcl)
