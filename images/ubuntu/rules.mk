@@ -9,16 +9,16 @@ $(eval $(call include_rules,$(d)hosts/rules.mk))
 
 .PRECIOUS: $(ubuntu_dimgs)
 
-$(o)vmlinuz: $(ubuntu_base_dimg)
+$(o)vmlinux: $(ubuntu_base_dimg)
 	mkdir -p $(@D)
 	rm -f $@
-	sudo virt-copy-out -a $< /output/vmlinux $@.tmp
-	sudo chown $(shell id -u):$(shell id -g) $@.tmp
-	mv $@.tmp $@
+	sudo $(virt_copy_out) -a $< /output/vmlinux $(@D)
+	sudo chown $(shell id -u):$(shell id -g) $@
+	touch $@
 
 $(o)bzImage: $(ubuntu_base_dimg)
 	mkdir -p $(@D)
 	rm -f $@
-	sudo virt-copy-out -a $< /output/bzImage $@.tmp
+	sudo $(virt_copy_out) -a $< /output/bzImage $@.tmp
 	sudo chown $(shell id -u):$(shell id -g) $@.tmp
 	mv $@.tmp $@

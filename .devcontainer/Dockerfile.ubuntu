@@ -63,11 +63,14 @@ RUN apt-get update \
     cloud-image-utils \
     qemu-system-x86 \
     libguestfs-tools \
+		linux-image-generic \
     python3-yaml \
     python3-pip \
 		sudo \
     && rm -rf /var/lib/apt/lists/* \
     && pip3 install easydict
+
+ENV LIBGUESTFS_BACKEND=direct
 
 # Add non-root user.
 ARG USER_NAME=baize

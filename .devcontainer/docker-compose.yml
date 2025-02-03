@@ -13,5 +13,6 @@ services:
       - /dev/kvm:/dev/kvm
     cap_add:
       - ALL
+    privileged: true
     working_dir: /workspace
     command: sleep infinity
