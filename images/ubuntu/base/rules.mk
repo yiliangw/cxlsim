@@ -17,12 +17,22 @@ $(ubuntu_base_dimg): $(b)input.tar $(b)seed.raw $(d)install.sh $(platform_config
 	-var "install_script=$(word 3,$^)" \
 	$(base_hcl)
 
-$(b)input.tar: $(linux_dir)README
-	rm -rf $(@D)/input
-	mkdir -p $(@D)/input
-	cp -r $(linux_dir) $(@D)/input/linux
-	$(MAKE) -C $(@D)/input/linux mrproper
+$(b)input.tar: $(addprefix $(b)input/, linux/README guestinit.sh m5)
 	tar -C $(@D)/input -cf $@ .
+
+$(b)input/linux/README: $(linux_dir)README
+	rm -rf $(@D)
+	mkdir -p $(dirname $(@D))
+	cp -r $(linux_dir) $(@D)
+	$(MAKE) -C $(@D) mrproper
+
+$(b)input/guestinit.sh: $(simbricks_dir)images/scripts/guestinit.sh
+	mkdir -p $(@D)
+	cp $< $@
+
+$(b)input/m5: $(simbricks_dir)images/m5
+	mkdir -p $(@D)
+	cp $< $@
 
 $(ubuntu_base_secondary_img):
 	mkdir -p $(@D)
@@ -40,17 +50,3 @@ $(b)seed.raw: $(b)user-data $(b)meta-data
 	mkdir -p $(@D)
 	rm -f $@
 	cloud-localds $@ $^
-
-$(o)basetmp/disk.qcow2: $(ubuntu_base_dimg)
-	mkdir -p $(@D)
-	rm -f $@
-	$(qemu_img) create -f qcow2 -o backing_file=$(realpath --relative-to=$(@D) $<) -F qcow2 $@
-	
-.PHONY: qemu-ubuntu-basetmp
-qemu-ubuntu-basetmp: $(o)basetmp/disk.qcow2
-	sudo -E $(qemu) -machine q35,accel=kvm -cpu host -smp $(shell echo $$((`nproc` / 2))) -m $(shell echo $$((`free -m | awk '/^Mem:/ {print $$4}'` / 2)))M  \
-	-drive file=$(word 1, $^),media=disk,format=qcow2,if=ide,index=0 \
-	-netdev user,id=user-net \
-	-device virtio-net-pci,netdev=user-net \
-	-boot c \
-	-display none -serial mon:stdio

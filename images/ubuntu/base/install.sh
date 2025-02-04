@@ -26,12 +26,16 @@ export DEBIAN_FRONTEND=noninteractive && sudo -E apt-get install -y \
   dwarves
 
 mkdir /tmp/input
-cd /tmp/input
+pushd /tmp/input
 sudo tar xf /dev/sdb
 sudo chown -R $(id -u):$(id -g) .
 
-cp -r linux/ ~/linux
+sudo cp guestinit.sh /sbin/guestinit.sh
+sudo chmod +x /sbin/guestinit.sh
+sudo cp m5 /sbin/m5
+sudo chmod +x /sbin/m5
 
+cp -r linux/ ~/linux
 cd ~/linux
 cp /boot/config-* .config
 ./scripts/config --set-str SYSTEM_TRUSTED_KEYS ""
@@ -68,3 +72,7 @@ sudo mkdir /output
 sudo cp .config /output/config
 sudo cp vmlinux /output/vmlinux
 sudo cp arch/x86/boot/bzImage /output/bzImage
+sudo cp /boot/initrd.img /output/initrd.img
+
+popd
+rm -rf /tmp/input

@@ -14,11 +14,11 @@ host_config_deps := $(yq) $(b)host.sed $(d)host.yaml
 
 config_yaml_all := $(d)misc.yaml $(d)platform.yaml $(d)openstack.yaml $(d)host.yaml 
 
-config_yaml := $(b)config.yaml
+config_yaml := $(o)config.yaml
 config_sed := $(b)config.sed
 config_deps := $(yq) $(config_yaml) $(config_sed)
 
-$(b)config.yaml: $(config_yaml_all) $(yq)
+$(config_yaml): $(config_yaml_all) $(yq)
 	mkdir -p $(@D)
 	$(yq) eval-all 'select(fileIndex == 0) * select(fileIndex == 1) | explode(.)' $(config_yaml_all) > $@
 

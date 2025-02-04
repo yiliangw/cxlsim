@@ -1,0 +1,5 @@
+- Fix self service network setup
+
+- Seems that Gem5 will automatically load the `initrd.img` in the same directory as the `vmlinux`.
+However, when explicitly assigning it to `System.workload.initrd_filename`, Gem5 exits with error.
+(Or is it because I have booted the kernel with qemu with the `-initrd` option?)

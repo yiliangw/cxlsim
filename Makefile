@@ -38,6 +38,8 @@ endef
 help:
 	@echo "Hello Baize :)"
 
+simbricks_dir := $(d)sim/simbricks/
+
 $(eval $(call include_rules,$(d).devcontainer/rules.mk))
 $(eval $(call include_rules,$(d)config/rules.mk))
 $(eval $(call include_rules,$(d)utils/rules.mk))
