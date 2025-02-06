@@ -6,7 +6,7 @@ from simbricks.orchestration.experiments import Experiment
 from simbricks.orchestration.simulators import I40eNIC, SwitchNet
 from simbricks.orchestration.nodeconfig import NodeConfig, AppConfig
 
-from baize.sim import OpenstackGem5Host, OpenstackNodeConfig, OpenstackPingApp, OpenstackPongApp
+from baize.sim import OpenstackGem5Host, OpenstackNodeConfig
 from baize.env import projenv
 
 import typing as tp
@@ -31,26 +31,32 @@ class ControllerApp(AppConfig):
 
   def run_cmds(self, node: NodeConfig) -> tp.List[str]:
     """Commands to run for this application."""
-    return [f'bash /home/{config.user_name}/exp/run.sh']
+    return [f'bash /root/run/run.sh']
 
   def prepare_pre_cp(self) -> tp.List[str]:
     """Commands to run to prepare this application before checkpointing."""
-    return [f'bash /home/{config.user_name}/prepare/run.sh']
+    return [f'bash /root/prepare/run.sh']
 
   def prepare_post_cp(self) -> tp.List[str]:
     """Commands to run to prepare this application after the checkpoint is
     restored."""
     return []
 
-  def config_files(self) -> tp.Dict[str, tp.IO]:
-    """
-    Additional files to put inside the node, which are mounted under
-    `/tmp/guest/`.
 
-    Specified in the following format: `filename_inside_node`:
-    `IO_handle_of_file`
-    """
-    return {}
+class ComputeApp(AppConfig):
+
+  def run_cmds(self, node: NodeConfig) -> tp.List[str]:
+    """Commands to run for this application."""
+    return [f'sleep inifinity']
+
+  def prepare_pre_cp(self) -> tp.List[str]:
+    """Commands to run to prepare this application before checkpointing."""
+    return [f'while [ ! -f /root/prepare/.done ]; do echo "waiting to be prepared by controller..."; sleep 3; done']
+
+  def prepare_post_cp(self) -> tp.List[str]:
+    """Commands to run to prepare this application after the checkpoint is
+    restored."""
+    return []
 
 
 e = Experiment(name='ubuntu_mysql')
@@ -58,8 +64,9 @@ e.checkpoint = True  # use checkpoint and restore to speed up simulation
 
 # create controller node
 controller_config = OpenstackUbuntuNode()
-controller_config.raw_disk_image_path = projenv.get_ubuntu_raw_disk('base')
-controller_config.app = OpenstackPingApp()
+controller_config.raw_disk_image_path = projenv.get_ubuntu_raw_disk(
+    'controller')
+controller_config.app = ControllerApp()
 controller = OpenstackGem5Host(controller_config)
 controller.name = 'controller'
 controller.wait = True
@@ -78,8 +85,8 @@ controller.add_nic(controller_provider_nic)
 
 # # create compute node
 compute1_config = OpenstackUbuntuNode()
-compute1_config.raw_disk_image_path = projenv.get_ubuntu_raw_disk('base')
-compute1_config.app = OpenstackPongApp()
+compute1_config.raw_disk_image_path = projenv.get_ubuntu_raw_disk('compute1')
+compute1_config.app = ComputeApp()
 compute1 = OpenstackGem5Host(compute1_config)
 compute1.name = 'compute1'
 compute1.wait = False

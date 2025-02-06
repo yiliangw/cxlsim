@@ -11,42 +11,44 @@ $(ubuntu_base_dimg): $(b)input.tar $(b)seed.raw $(d)install.sh $(platform_config
 	-var "cpus=$(shell echo $$((`nproc` / 2)))" \
 	-var "memory=$(shell echo $$((`free -m | awk '/^Mem:/ {print $$4}'` / 2)))" \
 	-var "seedimg=$(word 2,$^)" \
-	-var "user_name=$(call conffget,platform,.ubuntu.user.name)" \
-	-var "user_password=$(call conffget,platform,.ubuntu.user.password)" \
+	-var "user_name=root" \
+	-var "user_password=$(call conffget,platform,.ubuntu.root.password)" \
 	-var "input_tar_src=$(word 1,$^)" \
 	-var "install_script=$(word 3,$^)" \
 	$(base_hcl)
 
-$(b)input.tar: $(addprefix $(b)input/, linux/README guestinit.sh m5)
+$(b)input.tar: $(addprefix $(b)input/, linux/README simbricks-guestinit.sh simbricks-guestinit.service m5 \
+	$(addprefix ssh/, id_rsa id_rsa.pub config)) | $(b)
 	tar -C $(@D)/input -cf $@ .
 
-$(b)input/linux/README: $(linux_dir)README
+$(b)input/linux/README: $(linux_dir)README | $(b)input
 	rm -rf $(@D)
-	mkdir -p $(dirname $(@D))
 	cp -r $(linux_dir) $(@D)
 	$(MAKE) -C $(@D) mrproper
 
-$(b)input/guestinit.sh: $(simbricks_dir)images/scripts/guestinit.sh
-	mkdir -p $(@D)
+$(b)input/simbricks-guestinit.sh: $(d)input/simbricks-guestinit.sh | $(b)input
 	cp $< $@
 
-$(b)input/m5: $(simbricks_dir)images/m5
-	mkdir -p $(@D)
+$(b)input/simbricks-guestinit.service: $(d)input/simbricks-guestinit.service | $(b)input
+	cp $< $@
+
+$(b)input/m5: $(simbricks_dir)images/m5 | $(b)input
+	@mkdir -p $(@D)
+	cp $< $@
+
+$(b)input/ssh/%: $(d)input/ssh/% | $(b)input/ssh
+	@mkdir -p $(@D)
 	cp $< $@
 
 $(ubuntu_base_secondary_img):
-	mkdir -p $(@D)
+	@mkdir -p $(@D)
 	$(qemu_img) create -f qcow2 $@ $(UBUNTU_SECONDARY_DISK_SZ)
 
-$(b)user-data: $(d)user-data.tpl $(platform_config_deps)
-	mkdir -p $(@D)
+$(b)user-data: $(d)user-data.tpl $(platform_config_deps) | $(b)
 	$(call conffsed,platform,$<,$@)
 
-$(b)meta-data:
-	mkdir -p $(@D)
+$(b)meta-data: | $(b)
 	tee $@ < /dev/null > /dev/null
 
-$(b)seed.raw: $(b)user-data $(b)meta-data
-	mkdir -p $(@D)
-	rm -f $@
+$(b)seed.raw: $(b)user-data $(b)meta-data | $(b)
 	cloud-localds $@ $^

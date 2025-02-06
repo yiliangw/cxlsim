@@ -55,6 +55,7 @@ server_config.ip = '10.0.0.2'
 server_config.app = IdleHost()
 server = Gem5Host(server_config)
 server.name = 'server'
+server.wait = True
 e.add_host(server)
 
 # attach server's NIC
@@ -69,7 +70,7 @@ client_nic.set_network(network)
 server_nic.set_network(network)
 
 # set more interesting link latencies than default
-eth_latency = 500 * 10**3  # 500 us
+eth_latency = 500  # 500 us
 network.eth_latency = eth_latency
 client_nic.eth_latency = eth_latency
 server_nic.eth_latency = eth_latency

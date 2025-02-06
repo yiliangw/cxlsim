@@ -1,7 +1,7 @@
 local:
   network:
     management:
-      interface: enp0s2
+      interface: eth0
     provider:
-      interface: enp0s3 
+      interface: eth1
       bridge: provider-br

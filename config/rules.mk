@@ -20,7 +20,7 @@ config_deps := $(yq) $(config_yaml) $(config_sed)
 
 $(config_yaml): $(config_yaml_all) $(yq)
 	mkdir -p $(@D)
-	$(yq) eval-all 'select(fileIndex == 0) * select(fileIndex == 1) | explode(.)' $(config_yaml_all) > $@
+	$(yq) eval-all 'select(fileIndex == 0) * select(fileIndex > 0) | explode(.)' $(config_yaml_all) > $@
 
 # $(1) - .yaml $(2) - .sed
 define yaml2sed

@@ -17,61 +17,14 @@ class OpenstackNodeConfig(NodeConfig):
     # self.initrd_path = None
     """Absolute path to the initrd image."""
     self.kernel_command_line = \
-        "earlyprintk=ttyS0 console=ttyS0" \
-        " root=/dev/sda1 init=/sbin/guestinit.sh rw"
+        "earlyprintk=ttyS0 console=ttyS0 " \
+        "net.ifnames=0 " \
+        "root=/dev/sda1 simbricks_guest_input=/dev/sdb rw "
 
   def prepare_pre_cp(self) -> tp.List[str]:
     return super().prepare_pre_cp() + [
         f'modprobe {self.nic_driver}',
     ]
-
-
-class OpenstackPingApp(AppConfig):
-  """Check the state for a specific disk image for further setup."""
-
-  def __init__(self):
-    self.server_ip = '10.0.0.1'
-    self.ip = '10.0.0.2'
-    self.prefix = 24
-    self.device = 'eth0'
-
-  def prepare_pre_cp(self) -> tp.List[str]:
-    return [
-        f'echo "--- OpenstackPingApp ---"',
-        f'ip link',
-        f'ip link set dev {self.device} up',
-        f'ip addr add {self.ip}/{self.prefix} dev {self.device}',
-        f'while ! ping -c 1 {self.server_ip}; do sleep 1; done'
-    ]
-
-  def run_cmds(self, node: NodeConfig) -> tp.List[str]:
-    return [
-        f'ping -c 1 {self.server_ip}'
-    ]
-
-
-class OpenstackPongApp(AppConfig):
-
-  def __init__(self):
-    self.ip = '10.0.0.1'
-    self.client_ip = '10.0.0.2'
-    self.prefix = 24
-    self.device = 'eth0'
-
-  def prepare_pre_cp(self):
-    return [
-        f'echo "--- OpenstackPongApp ---"',
-        f'ip link',
-        f'ip link set dev {self.device} up',
-        f'ip addr add {self.ip}/{self.prefix} dev {self.device}',
-        f'while ! ping -c 1 {self.client_ip}; do sleep 1; done'
-    ]
-
-  def run_cmds(self, node: NodeConfig) -> tp.List[str]:
-    return [
-        f'ping -c 1 {self.client_ip}'
-    ]
-
 
 class OpenstackGem5Host(Gem5Host):
 

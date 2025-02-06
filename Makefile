@@ -60,5 +60,6 @@ clean:
 .PHONY: clean-external
 clean-external: $(EXTERNAL_CLEAN_ALL)
 
-# Preserve everything
-.PRECIOUS: %
+$(o)%/ $(b)%/:
+	mkdir -p $@
+
