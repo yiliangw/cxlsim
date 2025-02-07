@@ -1,35 +1,59 @@
+from .env import projenv
+
 from simbricks.orchestration.nodeconfig import NodeConfig, AppConfig
-from simbricks.orchestration.simulators import Gem5Host
+from simbricks.orchestration.simulators import Gem5Host, QemuHost
 from simbricks.orchestration.experiment.experiment_environment import ExpEnv
 
 import typing as tp
+import math
 
 
 class OpenstackNodeConfig(NodeConfig):
 
   def __init__(self):
     super().__init__()
-    self.nic_driver = 'i40e'
+    self.cores = 2
+    self.threads = 2
+    self.memory = 8192
     self.vmlinux_path = None
     """Absolute path to the kernel vmlinux."""
     self.raw_disk_image_path = None
-    # """Absolute path to the raw disk iamge."""
-    # self.initrd_path = None
+    """Absolute path to the raw disk image."""
+    self.disk_image_path = None
+    """Absolute path to the disk image."""
+    self.initrd_path = None
     """Absolute path to the initrd image."""
     self.kernel_command_line = \
         "earlyprintk=ttyS0 console=ttyS0 " \
         "net.ifnames=0 " \
-        "root=/dev/sda1 simbricks_guest_input=/dev/sdb rw "
+        "root=/dev/sda1 simbricks_guest_input=/dev/sdb rw"
 
-  def prepare_pre_cp(self) -> tp.List[str]:
+  def prepare_pre_cp(self):
     return super().prepare_pre_cp() + [
-        f'modprobe {self.nic_driver}',
+        'sleep 5'  # give the system enough to initialize
     ]
+
+  # def prepare_pre_cp(self) -> tp.List[str]:
+  #   return super().prepare_pre_cp() + [
+  #       f'modprobe {self.nic_driver}',
+  #   ]
+
+
+class UbuntuOpenstackNodeConfig(OpenstackNodeConfig):
+
+  def __init__(self):
+    super().__init__()
+    self.vmlinux_path = projenv.ubuntu_vmlinux_path
+    self.initrd_path = projenv.ubuntu_initrd_path
+    self.cores = 4
+    self.memory = 1024 * 16
+
 
 class OpenstackGem5Host(Gem5Host):
 
   def __init__(self, node_config: OpenstackNodeConfig):
     super().__init__(node_config)
+    self.node_config: OpenstackNodeConfig
 
   def run_cmd(self, env: ExpEnv) -> str:
     cpu_type = self.cpu_type
@@ -97,4 +121,68 @@ class OpenstackGem5Host(Gem5Host):
       cmd += ' '
 
     cmd += ' '.join(self.extra_config_args)
+    return cmd
+
+
+class OpenstackQemuHost(QemuHost):
+
+  def __init__(self, node_config: OpenstackNodeConfig):
+    super().__init__(node_config)
+    self.node_config: OpenstackNodeConfig
+
+  def prep_cmds(self, env: ExpEnv) -> tp.List[str]:
+    return [
+        f'{env.qemu_img_path} create -f qcow2 -F qcow2 -o '
+        f'backing_file="{self.node_config.disk_image_path}" '
+        f'{env.hdcopy_path(self)}'
+    ]
+
+  def run_cmd(self, env: ExpEnv) -> str:
+    accel = ',accel=kvm:tcg' if not self.sync else ''
+    if self.node_config.kcmd_append:
+      kcmd_append = ' ' + self.node_config.kcmd_append
+    else:
+      kcmd_append = ''
+
+    cmd = (
+        f'{env.qemu_path} -machine q35{accel} -serial mon:stdio '
+        '-cpu Skylake-Server -display none -nic none '
+        f'-kernel {self.node_config.vmlinux_path} '
+        f'-drive file={env.hdcopy_path(self)},if=ide,index=0,media=disk '
+        f'-drive file={env.cfgtar_path(self)},if=ide,index=1,media=disk,'
+        'driver=raw '
+        f'-append "{self.node_config.kernel_command_line} {kcmd_append}" '
+        f'-m {self.node_config.memory} -smp {self.node_config.cores} '
+    )
+
+    if self.node_config.initrd_path:
+      cmd += f'-initrd {self.node_config.initrd_path} '
+
+    if False and self.sync:
+      unit = self.cpu_freq[-3:]
+      if unit.lower() == 'ghz':
+        base = 0
+      elif unit.lower() == 'mhz':
+        base = 3
+      else:
+        raise ValueError('cpu frequency specified in unsupported unit')
+      num = float(self.cpu_freq[:-3])
+      shift = base - int(math.ceil(math.log(num, 2)))
+
+      cmd += f' -icount shift={shift},sleep=off '
+
+    for dev in self.pcidevs:
+      cmd += f'-device simbricks-pci,socket={env.dev_pci_path(dev)}'
+      if self.sync:
+        cmd += ',sync=on'
+        cmd += f',pci-latency={self.pci_latency}'
+        cmd += f',sync-period={self.sync_period}'
+      else:
+        cmd += ',sync=off'
+      cmd += ' '
+
+    # qemu does not currently support net direct ports
+    assert len(self.net_directs) == 0
+    # qemu does not currently support mem device ports
+    assert len(self.memdevs) == 0
     return cmd

@@ -1,7 +1,7 @@
 #!/bin/bash
-d=`dirname ${BASH_SOURCE[0]}`
-
 set -xe
+
+pushd `dirname ${BASH_SOURCE[0]}`
 
 # Create the glance database
 cat <<EOF | sudo mysql -u root
@@ -20,7 +20,7 @@ openstack endpoint create --region RegionOne placement public http://controller:
 openstack endpoint create --region RegionOne placement internal http://controller:8778
 openstack endpoint create --region RegionOne placement admin http://controller:8778
 
-sudo tee /etc/placement/placement.conf < ${d}/placement.conf > /dev/null
+sudo tee /etc/placement/placement.conf < placement.conf > /dev/null
 
 sudo su -s /bin/sh -c "placement-manage db sync" placement
 
@@ -30,3 +30,5 @@ sudo systemctl restart apache2
 sudo placement-status upgrade check
 openstack --os-placement-api-version 1.2 resource class list --sort-column name
 openstack --os-placement-api-version 1.6 trait list --sort-column name
+
+popd

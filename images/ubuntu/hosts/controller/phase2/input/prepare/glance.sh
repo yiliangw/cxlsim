@@ -1,7 +1,7 @@
 #!/bin/bash
-d=`dirname ${BASH_SOURCE[0]}`
-
 set -xe
+
+pushd `dirname ${BASH_SOURCE[0]}`
 
 # Create the glance database
 cat <<EOF | sudo mysql -u root
@@ -23,7 +23,7 @@ openstack endpoint create --region RegionOne image internal http://controller:92
 openstack endpoint create --region RegionOne image admin http://controller:9292
 
 # Edit /etc/glance/glance-api.conf
-sudo tee /etc/glance/glance-api.conf < ${d}/glance-api.conf > /dev/null
+sudo tee /etc/glance/glance-api.conf < glance-api.conf > /dev/null
 
 # Permit reader access to glance
 openstack role add --user glance --user-domain Default --system all reader
@@ -36,8 +36,10 @@ sudo systemctl restart glance-api
 sleep 3
 
 # Verify
-glance image-create --name "cirros" --file ${d}/images/cirros.qcow2 --disk-format qcow2 \
+glance image-create --name "cirros" --file images/cirros.qcow2 --disk-format qcow2 \
   --container-format bare --visibility public
 
 # Ensure there is cirros in the output, otherwise fail
 glance image-list | grep -q cirros
+
+popd

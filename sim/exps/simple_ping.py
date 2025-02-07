@@ -38,6 +38,8 @@ e.checkpoint = True  # use checkpoint and restore to speed up simulation
 # create client
 client_config = I40eLinuxNode()  # boot Linux with i40e NIC driver
 client_config.ip = '10.0.0.1'
+client_config.cores = 4
+client_config.memory = 8192
 client_config.app = PingClient(server_ip='10.0.0.2')
 client = Gem5Host(client_config)
 client.name = 'client'
@@ -52,6 +54,8 @@ client.add_nic(client_nic)
 # create server
 server_config = I40eLinuxNode()  # boot Linux with i40e NIC driver
 server_config.ip = '10.0.0.2'
+server_config.cores = 4
+server_config.memory = 8192
 server_config.app = IdleHost()
 server = Gem5Host(server_config)
 server.name = 'server'

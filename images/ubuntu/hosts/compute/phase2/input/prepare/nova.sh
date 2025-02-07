@@ -1,9 +1,9 @@
 #!/bin/bash
-d=`dirname ${BASH_SOURCE[0]}`
-
 set -xe
 
-sudo tee /etc/nova/nova.conf < ${d}/nova.conf > /dev/null
+pushd `dirname ${BASH_SOURCE[0]}`
+
+sudo tee /etc/nova/nova.conf < nova.conf > /dev/null
 
 sudo systemctl restart nova-compute
 
@@ -16,3 +16,5 @@ ssh controller '\
   openstack compute service list --service nova-compute && \
   sudo su -s /bin/sh -c "nova-manage cell_v2 discover_hosts --verbose" nova\
 '
+
+popd

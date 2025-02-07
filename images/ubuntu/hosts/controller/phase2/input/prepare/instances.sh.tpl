@@ -1,7 +1,7 @@
 #!/bin/bash
-d=`dirname ${BASH_SOURCE[0]}`
-
 set -xe
+
+pushd `dirname ${BASH_SOURCE[0]}`
 
 . ~/env/admin_openrc
 
@@ -25,9 +25,9 @@ openstack flavor create --vcpus {{ .openstack.instances.mysql.server.vcpus }} --
 openstack flavor create --vcpus {{ .openstack.instances.mysql.client.vcpus }} --ram {{ .openstack.instances.mysql.client.ram }} --disk {{ .openstack.instances.mysql.client.disk }} mysql.client
 
 # Create images
-glance image-create --name "mysql.server" --file ${d}/images/mysql_server.qcow2 --disk-format qcow2 \
+glance image-create --name "mysql.server" --file images/mysql_server.qcow2 --disk-format qcow2 \
   --container-format bare --visibility public
-glance image-create --name "mysql.client" --file ${d}/images/mysql_client.qcow2 --disk-format qcow2 \
+glance image-create --name "mysql.client" --file images/mysql_client.qcow2 --disk-format qcow2 \
   --container-format bare --visibility public
 
 . ~/env/user_openrc
@@ -58,3 +58,5 @@ openstack server create --flavor mysql.server --image mysql.server \
 openstack server create --flavor mysql.client --image mysql.client \
   --port mysql.client --security-group default \
   --key-name mykey mysql.client
+
+popd

@@ -9,20 +9,22 @@ qemu-ubuntu-compute1: $(ubuntu_dimg_o)compute1/disk.qcow2 $(config_deps)
 	-boot c \
 	-display none -serial mon:stdio
 
-ubuntu_dimgs += $(ubuntu_dimg_o)compute1/disk.qcow2
 $(ubuntu_dimg_o)compute%/disk.qcow2: $(ubuntu_dimg_o)compute%_phase2/disk.qcow2
 	mkdir -p $(@D)
 	rm -f $@
 	ln -s $(shell realpath --relative-to=$(dir $@) $<) $@
 
-$(ubuntu_dimg_o)compute%_phase2/disk.qcow2: $(ubuntu_dimg_o)compute%_phase1/disk.qcow2 $(b)compute%/phase2/input.tar $(d)phase2/install.sh $(extend_hcl) $(packer)
+.PRECIOUS: $(ubuntu_dimg_o)compute%_phase2/disk.qcow2
+$(ubuntu_dimg_o)compute%_phase2/disk.qcow2: $(ubuntu_dimg_o)compute%_phase1/disk.qcow2 $(b)compute%/phase2/input.tar $(d)phase2/install.sh $(extend_hcl) $(packer) $(platform_config_deps)
 	rm -rf $(@D)
 	mkdir -p $(dir $(@D))
 	$(packer_run) build \
 	-var "base_img=$(word 1,$^)" \
-	-var "disk_size=$(UBUNTU_ROOT_DISK_SZ)" \
+	-var "disk_size=$(call conffget,platform,.ubuntu.disk.size)" \
 	-var "out_dir=$(@D)" \
 	-var "out_name=$(@F)" \
+	-var "user_name=root" \
+	-var "user_password=$(call conffget,platform,.ubuntu.root.password)" \
 	-var "input_tar_src=$(word 2,$^)" \
 	-var "install_script=$(word 3,$^)" \
 	$(extend_hcl)
@@ -33,9 +35,11 @@ $(ubuntu_dimg_o)compute%_phase1/disk.qcow2: $(ubuntu_base_dimg) $(b)compute%/pha
 	mkdir -p $(dir $(@D))
 	$(packer_run) build \
 	-var "base_img=$(word 1,$^)" \
-	-var "disk_size=$(UBUNTU_ROOT_DISK_SZ)" \
+	-var "disk_size=$(call conffget,platform,.ubuntu.disk.size)" \
 	-var "out_dir=$(@D)" \
 	-var "out_name=$(@F)" \
+	-var "user_name=root" \
+	-var "user_password=$(call conffget,platform,.ubuntu.root.password)" \
 	-var "input_tar_src=$(word 2,$^)" \
 	-var "install_script=$(word 3,$^)" \
 	$(extend_hcl)

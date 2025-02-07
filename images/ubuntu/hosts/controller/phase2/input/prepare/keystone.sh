@@ -1,7 +1,7 @@
 #!/bin/bash
-d=`dirname ${BASH_SOURCE[0]}`
-
 set -xe
+pushd `dirname ${BASH_SOURCE[0]}`
+
 
 # Create the keystone database
 cat <<EOF | sudo mysql -u root
@@ -12,7 +12,7 @@ EOF
 
 # Install keystone
 # Edit /etc/keystone/keystone.conf
-sudo tee /etc/keystone/keystone.conf < ${d}/keystone.conf > /dev/null
+sudo tee /etc/keystone/keystone.conf < keystone.conf > /dev/null
 # Populate the Identity service database
 sudo su -s /bin/sh -c "keystone-manage db_sync" keystone
 # Initialize Fernet key repositories
@@ -45,3 +45,5 @@ openstack role add --project $USER_PROJECT --user $USER_NAME member
 openstack token issue
 . ~/env/user_openrc
 openstack token issue
+
+popd

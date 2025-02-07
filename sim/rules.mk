@@ -1,6 +1,6 @@
 simbricks_run_script := $(simbricks_dir)experiments/run.py
 
-SIMBRICKS_OPTIONS := --repo $(simbricks_dir) --workdir $(o) --outdir $(o) --cpdir $(o) --runs 1 --verbose --force --parallel
+SIMBRICKS_OPTIONS := --repo $(simbricks_dir) --workdir $(o) --outdir $(o) --cpdir $(o) --runs 1 --verbose --force
 
 sim_lib_files := $(filter-out %__pycache__/%,$(wildcard $(d)lib/**/*))
 sim_common_deps := $(sim_lib_files) $(simbricks_run_script) $(config_yaml)
@@ -24,5 +24,5 @@ $(o)ubuntu_mysql.log: $(ubuntu_dimg_o)controller/disk.raw $(ubuntu_dimg_o)comput
 .PHONY: run-ubuntu-ping
 run-ubuntu-ping: $(ubuntu_dimg_o)base/disk.raw $(o)ubuntu_ping.log
 
-$(o)ubuntu_ping.log: $(ubuntu_dimg_o)base/disk.raw $(ubuntu_vmlinux)
+$(o)ubuntu_ping.log: $(ubuntu_dimg_o)base/disk.qcow2 $(ubuntu_vmlinux) $(ubuntu_initrd)
 

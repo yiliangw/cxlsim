@@ -37,4 +37,4 @@ IMAGE_ALL := $(DIMG_ALL) $(RAW_DIMG_ALL) $(o)ubuntu/bzImage $(o)ubuntu/vmlinux
 .PRECIOUS: $(IMAGE_ALL)
 
 .PHONY: images
-images: $(IMAGE_ALL) 
+images: $(IMAGE_ALL)

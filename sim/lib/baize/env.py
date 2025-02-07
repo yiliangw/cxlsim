@@ -13,7 +13,7 @@ class ProjEnv(object):
     self.images_dir = os.path.join(self.make_outdir, 'images')
     self.config_yaml_path = os.path.join(self.make_outdir, 'config/config.yaml')
 
-    self.ubuntu_kernel_path = os.path.join(self.images_dir, 'ubuntu/vmlinux')
+    self.ubuntu_vmlinux_path = os.path.join(self.images_dir, 'ubuntu/vmlinux')
     self.ubuntu_initrd_path = os.path.join(self.images_dir, 'ubuntu/initrd.img')
 
     with open(self.config_yaml_path) as f:

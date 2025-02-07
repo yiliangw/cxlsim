@@ -1,12 +1,9 @@
 set -xe
 
 mkdir -p /tmp/input
-cd /tmp/input
-tar xf /dev/sdb
+pushd /tmp/input
 
-cp ssh/* ~/.ssh
-chmod 600 ~/.ssh/id_rsa
-cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+tar xf /dev/sdb
 
 sudo tee /etc/hosts < hosts > /dev/null
 sudo tee /etc/hostname < hostname > /dev/null
@@ -19,3 +16,6 @@ sudo systemctl enable ovs-iface-up
 
 cp -r env/ ~
 cp -r prepare/ ~
+
+popd
+rm -rf /tmp/input

@@ -9,6 +9,8 @@ sudo usermod -aG kvm $USER
 
 # Do not wait for the network during boot
 sudo systemctl mask systemd-networkd-wait-online
+# Disable graphical interface
+sudo systemctl set-default multi-user.target
 
 # OpenStack 2024.1 (Caracal)
 sudo add-apt-repository -y cloud-archive:caracal

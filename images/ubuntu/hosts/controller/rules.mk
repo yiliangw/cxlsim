@@ -1,11 +1,20 @@
-.PHONY: qemu-ubuntu-controller
-qemu-ubuntu-controller: $(ubuntu_dimg_o)controller/disk.qcow2 $(config_deps)
+.PHONY: qemu-ubuntu-controller-bridge
+qemu-ubuntu-controller-bridge: $(ubuntu_dimg_o)controller/disk.qcow2 $(config_deps)
 	sudo -E $(qemu) -machine q35,accel=kvm -cpu host -smp 4 -m 16G \
 	-drive file=$(word 1, $^),media=disk,format=qcow2,if=ide,index=0 \
 	-netdev bridge,id=net-management,br=$(call confget,.host.bridges.management.name) \
 	-device virtio-net-pci,netdev=net-management,mac=$(call confget,.host.qemu_mac_list[0]) \
 	-netdev bridge,id=net-provider,br=$(call confget,.host.bridges.provider.name) \
 	-device virtio-net-pci,netdev=net-provider,mac=$(call confget,.host.qemu_mac_list[1]) \
+	-boot c \
+	-display none -serial mon:stdio
+
+.PHONY: qemu-ubuntu-controller
+qemu-ubuntu-controller: $(ubuntu_dimg_o)controller/disk.qcow2 $(config_deps)
+	sudo -E $(qemu) -machine q35,accel=kvm -cpu host -smp 4 -m 16G \
+	-drive file=$(word 1, $^),media=disk,format=qcow2,if=ide,index=0 \
+	-netdev user,id=user-net \
+	-device virtio-net-pci,netdev=user-net \
 	-boot c \
 	-display none -serial mon:stdio
 
@@ -20,15 +29,17 @@ $(ubuntu_dimg_o)controller_phase2/disk.qcow2: $(ubuntu_dimg_o)controller_phase1/
 	mkdir -p $(dir $(@D))
 	$(packer_run) build \
 	-var "base_img=$(word 1, $^)" \
-	-var "disk_size=$(UBUNTU_ROOT_DISK_SZ)" \
+	-var "disk_size=$(call conffget,platform,.ubuntu.disk.size)" \
 	-var "out_dir=$(@D)" \
 	-var "out_name=$(@F)" \
+	-var "user_name=root" \
+	-var "user_password=$(call conffget,platform,.ubuntu.root.password)" \
 	-var "input_tar_src=$(word 2,$^)" \
 	-var "install_script=$(word 3,$^)" \
 	$(extend_hcl)
 
 .PRECIOUS: $(ubuntu_dimg_o)controller_phase1/disk.qcow2
-$(ubuntu_dimg_o)controller_phase1/disk.qcow2: $(ubuntu_base_dimg) $(b)phase1/input.tar $(d)phase1/install.sh $(extend_hcl) $(packer)
+$(ubuntu_dimg_o)controller_phase1/disk.qcow2: $(ubuntu_base_dimg) $(b)phase1/input.tar $(d)phase1/install.sh $(extend_hcl) $(packer) $(platform_config_deps)
 	rm -rf $(@D)
 	mkdir -p $(dir $(@D))
 	$(packer_run) build \
@@ -36,8 +47,8 @@ $(ubuntu_dimg_o)controller_phase1/disk.qcow2: $(ubuntu_base_dimg) $(b)phase1/inp
 	-var "disk_size=$(call conffget,platform,.ubuntu.disk.size)" \
 	-var "out_dir=$(@D)" \
 	-var "out_name=$(@F)" \
-	-var "user_name=$(call conffget,platform,.ubuntu.user.name)" \
-	-var "user_password=$(call conffget,platform,.ubuntu.user.password)" \
+	-var "user_name=root" \
+	-var "user_password=$(call conffget,platform,.ubuntu.root.password)" \
 	-var "input_tar_src=$(word 2,$^)" \
 	-var "install_script=$(word 3,$^)" \
 	$(extend_hcl)
@@ -52,7 +63,7 @@ $(b)phase2/input.tar: $(addprefix $(b)phase2/input/, \
 	$(addprefix prepare/, run.sh chrony.conf mysql/99-openstack.cnf memcached.conf etcd keystone.sh keystone.conf \
 	glance.sh glance-api.conf placement.sh placement.conf nova.sh nova.conf neutron.sh neutron/neutron.conf \
 	neutron/ml2_conf.ini neutron/openvswitch_agent.ini neutron/dhcp_agent.ini neutron/l3_agent.ini neutron/metadata_agent.ini instances.sh) \
-	$(addprefix exp/, run.sh))
+	$(addprefix run/, run.sh))
 	tar -C $(@D)/input -cf $@ .
 
 INPUT_TAR_ALL += $(b)phase2/input.tar

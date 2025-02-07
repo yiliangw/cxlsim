@@ -1,7 +1,7 @@
 #!/bin/bash
-d=`dirname ${BASH_SOURCE[0]}`
-
 set -xe
+
+pushd `dirname ${BASH_SOURCE[0]}`
 
 cat <<EOF | sudo mysql -u root
 CREATE DATABASE nova_api;
@@ -35,7 +35,7 @@ openstack endpoint create --region RegionOne \
 openstack endpoint create --region RegionOne \
   compute admin http://controller:8774/v2.1
 
-sudo tee /etc/nova/nova.conf < ${d}/nova.conf > /dev/null
+sudo tee /etc/nova/nova.conf < nova.conf > /dev/null
 
 sudo su -s /bin/sh -c "nova-manage api_db sync" nova
 sudo su -s /bin/sh -c "nova-manage cell_v2 map_cell0" nova
@@ -47,3 +47,5 @@ sudo systemctl restart \
 
 # Verify
 sudo su -s /bin/sh -c "nova-manage cell_v2 list_cells" nova
+
+popd
