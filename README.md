@@ -39,7 +39,7 @@ Steps:
 
 6. Build Simbricks in the container:
     ```bash
-    make build-simbricks
+    make simbricks-build
     ```
 
 Run QEMU VMs with virtual LAN
