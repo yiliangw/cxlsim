@@ -54,7 +54,6 @@ class PingApp(AppConfig):
     return [
         f'while ! ping -c 1 {self.server_ip}; do echo "Pinging..."; done',
         f'echo "Ping success! Finsh."',
-        f'ssh {self.server_ip} "poweroff -f"'
     ]
 
 
@@ -118,6 +117,6 @@ e.add_network(network)
 ping_nic.set_network(network)
 pong_nic.set_network(network)
 
-config_experiment_sync(e, sync=SYNC, sync_period=SYNC_PERIOD)
+config_experiment_sync(e, sync=CONFIG.sync, sync_period=CONFIG.sync_period)
 
 experiments = [e]

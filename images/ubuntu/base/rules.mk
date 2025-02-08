@@ -21,22 +21,22 @@ $(b)input.tar: $(addprefix $(b)input/, linux/README simbricks-guestinit.sh simbr
 	$(addprefix ssh/, id_rsa id_rsa.pub config)) | $(b)
 	tar -C $(@D)/input -cf $@ .
 
-$(b)input/linux/README: $(linux_dir)README | $(b)input
+$(b)input/linux/README: $(linux_dir)README | $(b)input/
 	rm -rf $(@D)
 	cp -r $(linux_dir) $(@D)
 	$(MAKE) -C $(@D) mrproper
 
-$(b)input/simbricks-guestinit.sh: $(d)input/simbricks-guestinit.sh | $(b)input
+$(b)input/simbricks-guestinit.sh: $(d)input/simbricks-guestinit.sh | $(b)input/
 	cp $< $@
 
-$(b)input/simbricks-guestinit.service: $(d)input/simbricks-guestinit.service | $(b)input
+$(b)input/simbricks-guestinit.service: $(d)input/simbricks-guestinit.service | $(b)input/
 	cp $< $@
 
-$(b)input/m5: $(simbricks_dir)images/m5 | $(b)input
+$(b)input/m5: $(simbricks_dir)images/m5 | $(b)input/
 	@mkdir -p $(@D)
 	cp $< $@
 
-$(b)input/ssh/%: $(d)input/ssh/% | $(b)input/ssh
+$(b)input/ssh/%: $(d)input/ssh/% | $(b)input/ssh/
 	@mkdir -p $(@D)
 	cp $< $@
 
