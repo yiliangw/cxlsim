@@ -27,8 +27,7 @@ run-ubuntu-mysql: $(o)ubuntu_mysql.log
 
 $(o)ubuntu_mysql.log: $(ubuntu_dimg_o)controller/disk.raw $(ubuntu_dimg_o)compute1/disk.raw $(ubuntu_vmlinux)
 
-.PHONY: run-ubuntu-ping
-run-ubuntu-ping: $(ubuntu_dimg_o)base/disk.raw $(o)ubuntu_ping.log
+.PHONY: run-ubuntu-ssh
+run-ubuntu-ssh: $(o)ubuntu_ssh.log
 
-$(o)ubuntu_ping.log: $(ubuntu_dimg_o)base/disk.qcow2 $(ubuntu_vmlinux) $(ubuntu_initrd)
-
+$(o)ubuntu_ssh.log: $(ubuntu_dimg_o)base/disk.qcow2 $(ubuntu_dimg_o)base/disk.raw $(ubuntu_vmlinux) $(ubuntu_initrd)

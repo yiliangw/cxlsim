@@ -12,8 +12,7 @@ class OpenstackNodeConfig(NodeConfig):
 
   def __init__(self):
     super().__init__()
-    self.cores = 2
-    self.threads = 2
+    self.cores = 1
     self.memory = 8192
     self.vmlinux_path = None
     """Absolute path to the kernel vmlinux."""
@@ -32,21 +31,6 @@ class OpenstackNodeConfig(NodeConfig):
     return super().prepare_pre_cp() + [
         'sleep 5'  # give the system enough to initialize
     ]
-
-  # def prepare_pre_cp(self) -> tp.List[str]:
-  #   return super().prepare_pre_cp() + [
-  #       f'modprobe {self.nic_driver}',
-  #   ]
-
-
-class UbuntuOpenstackNodeConfig(OpenstackNodeConfig):
-
-  def __init__(self):
-    super().__init__()
-    self.vmlinux_path = projenv.ubuntu_vmlinux_path
-    self.initrd_path = projenv.ubuntu_initrd_path
-    self.cores = 4
-    self.memory = 1024 * 16
 
 
 class OpenstackGem5Host(Gem5Host):
