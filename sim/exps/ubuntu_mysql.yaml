@@ -1,0 +1,19 @@
+sync: false
+pci_latency: 1000 # ns
+eth_latency: 1000 # ns
+cp: false
+host_sim: 'gem5'
+net_direct: true
+nic_sim: 'e1000'
+hosts:
+  controller:
+    cores: 8
+    memory: 16384
+    management_mac: '52:54:00:11:10:01'
+    provider_mac: '52:54:00:11:11:01'
+  compute1:
+    cores: 8
+    memory: 16384
+    management_mac: '52:54:00:11:10:02'
+    provider_mac: '52:54:00:11:11:02' 
+

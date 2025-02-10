@@ -59,4 +59,18 @@ openstack server create --flavor mysql.client --image mysql.client \
   --port mysql.client --security-group default \
   --key-name mykey mysql.client
 
+sleep 5
+
+mysql_server_ip={{ .openstack.instances.mysql.server.ip }}
+mysql_client_ip={{ .openstack.instances.mysql.client.ip }}
+user={{ .openstack.instances.user.name }}
+password={{ .openstack.instances.user.password }}
+
+while ! sshpass -p${password} ssh ${user}@${mysql_server_ip} uptime; do
+    sleep 3
+done
+while ! sshpass -p${password} ssh ${user}@${mysql_client_ip} uptime; do
+    sleep 3
+done
+
 popd

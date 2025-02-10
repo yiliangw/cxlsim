@@ -3,123 +3,162 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '../lib'))
 
 from simbricks.orchestration.experiments import Experiment
-from simbricks.orchestration.simulators import I40eNIC, SwitchNet
+from simbricks.orchestration.simulators import I40eNIC, E1000NIC, SwitchNet
 from simbricks.orchestration.nodeconfig import NodeConfig, AppConfig
 
-from baize.sim import OpenstackQemuHost, OpenstackGem5Host, UbuntuOpenstackNodeConfig
+from baize.sim import OpenstackQemuHost, OpenstackGem5Host, OpenstackNodeConfig
 from baize.env import projenv
 from baize.utils import config_experiment_sync
 
 import typing as tp
 from easydict import EasyDict as edict
+import yaml
 
-CONFIG = edict()
+exp_name = os.path.basename(__file__).replace('.py', '')
+config_file = os.path.abspath(__file__).replace('.py', '.yaml')
 
-CONFIG.sync = False
-CONFIG.sync_period = 1000
-CONFIG.cp = True
-CONFIG.host_sim = 'qemu'
+with open(config_file, 'r') as f:
+  CONFIG = edict(yaml.full_load(f))
 
 if CONFIG.host_sim == 'qemu':
-  HOST_SIM = OpenstackQemuHost
+  HostSimCls = OpenstackQemuHost
 elif CONFIG.host_sim == 'gem5':
-  HOST_SIM = OpenstackGem5Host
+  HostSimCls = OpenstackGem5Host
 else:
   raise ValueError(f'Unknown host simulator: {CONFIG.host_sim}')
+
+if CONFIG.nic_sim == 'i40e':
+  NicSimCls = I40eNIC
+elif CONFIG.nic_sim == 'e1000':
+  NicSimCls = E1000NIC
+else:
+  raise ValueError(f'Unknown NIC simulator: {CONFIG.nic_sim}')
+
+
+class ExpNodeConfig(OpenstackNodeConfig):
+
+  def __init__(self):
+    super().__init__()
+    self.vmlinux_path = projenv.ubuntu_vmlinux_path
+    self.initrd_path = projenv.ubuntu_initrd_path
 
 
 class ControllerApp(AppConfig):
 
-  def run_cmds(self, node: NodeConfig) -> tp.List[str]:
-    """Commands to run for this application."""
-    return [f'bash /root/run/run.sh']
-
   def prepare_pre_cp(self) -> tp.List[str]:
     """Commands to run to prepare this application before checkpointing."""
-    return [f'bash /root/prepare/run.sh']
+    return [
+        # ensure connection from both side can be setup
+        "while ! ssh compute1 'while ! ssh controller uptime; do sleep 3; done'; do sleep 3; done",
+        "bash /root/prepare/run.sh",
+        "ssh compute1 'touch /root/.prepare.done'",
+        "sleep 3",
+    ]
 
-  def prepare_post_cp(self) -> tp.List[str]:
-    """Commands to run to prepare this application after the checkpoint is
-    restored."""
-    return []
+  def run_cmds(self, node: NodeConfig) -> tp.List[str]:
+    """Commands to run for this application."""
+    return [
+        f'bash /root/run/run.sh'
+    ]
 
 
 class ComputeApp(AppConfig):
+
+  def prepare_pre_cp(self) -> tp.List[str]:
+    """Commands to run to prepare this application before checkpointing."""
+    return [
+        f'while [ ! -f /root/.prepare.done ]; do sleep 5; done',
+        'sleep 3',
+    ]
 
   def run_cmds(self, node: NodeConfig) -> tp.List[str]:
     """Commands to run for this application."""
     return [f'sleep inifinity']
 
-  def prepare_pre_cp(self) -> tp.List[str]:
-    """Commands to run to prepare this application before checkpointing."""
-    return [f'while [ ! -f /root/prepare/.done ]; do echo "waiting to be prepared by controller..."; sleep 5; done']
 
-  def prepare_post_cp(self) -> tp.List[str]:
-    """Commands to run to prepare this application after the checkpoint is
-    restored."""
-    return []
-
-
-e = Experiment(name='ubuntu_mysql')
+e = Experiment(name=exp_name)
 e.checkpoint = CONFIG.cp  # use checkpoint and restore to speed up simulation
 
 # create controller node
-controller_config = UbuntuOpenstackNodeConfig()
+controller_config = ExpNodeConfig()
 controller_config.disk_image_path = projenv.get_ubuntu_disk(
     'controller')
 controller_config.raw_disk_image_path = projenv.get_ubuntu_raw_disk(
     'controller')
+controller_config.cores = CONFIG.hosts.controller.cores
+controller_config.memory = CONFIG.hosts.controller.memory
+controller_config.force_mac_addrs = {
+    'eth0': CONFIG.hosts.controller.management_mac,
+    'eth1': CONFIG.hosts.controller.provider_mac,
+}
 controller_config.app = ControllerApp()
-controller = HOST_SIM(controller_config)
+controller = HostSimCls(controller_config)
 controller.name = 'controller'
 controller.wait = True
 e.add_host(controller)
 
 # attach controller's NIC
-controller_management_nic = I40eNIC()
-controller_management_nic.name = 'management'
-e.add_nic(controller_management_nic)
-controller.add_nic(controller_management_nic)
+if not CONFIG.net_direct:
+  controller_management_nic = NicSimCls()
+  controller_management_nic.name = 'management'
+  e.add_nic(controller_management_nic)
+  controller.add_nic(controller_management_nic)
 
-controller_provider_nic = I40eNIC()
-controller_provider_nic.name = 'provider'
-e.add_nic(controller_provider_nic)
-controller.add_nic(controller_provider_nic)
+  controller_provider_nic = NicSimCls()
+  controller_provider_nic.name = 'provider'
+  e.add_nic(controller_provider_nic)
+  controller.add_nic(controller_provider_nic)
 
 # # create compute node
-compute1_config = UbuntuOpenstackNodeConfig()
+compute1_config = ExpNodeConfig()
 compute1_config.disk_image_path = projenv.get_ubuntu_disk('compute1')
 compute1_config.raw_disk_image_path = projenv.get_ubuntu_raw_disk('compute1')
+compute1_config.cores = CONFIG.hosts.compute1.cores
+compute1_config.memory = CONFIG.hosts.compute1.memory
+compute1_config.force_mac_addrs = {
+    'eth0': CONFIG.hosts.compute1.management_mac,
+    'eth1': CONFIG.hosts.compute1.provider_mac,
+}
 compute1_config.app = ComputeApp()
-compute1 = HOST_SIM(compute1_config)
+compute1 = HostSimCls(compute1_config)
 compute1.name = 'compute1'
 compute1.wait = False
 e.add_host(compute1)
 
 # attach compute1's NIC
-compute1_management_nic = I40eNIC()
-compute1_management_nic.name = 'management'
-e.add_nic(compute1_management_nic)
-compute1.add_nic(compute1_management_nic)
-compute1_provider_nic = I40eNIC()
-compute1_provider_nic.name = 'provider'
-e.add_nic(compute1_provider_nic)
-compute1.add_nic(compute1_provider_nic)
+if not CONFIG.net_direct:
+  compute1_management_nic = NicSimCls()
+  compute1_management_nic.name = 'management'
+  e.add_nic(compute1_management_nic)
+  compute1.add_nic(compute1_management_nic)
+  compute1_provider_nic = NicSimCls()
+  compute1_provider_nic.name = 'provider'
+  e.add_nic(compute1_provider_nic)
+  compute1.add_nic(compute1_provider_nic)
 
 # set up management network
 management_network = SwitchNet()
 management_network.name = 'management_net'
 e.add_network(management_network)
-controller_management_nic.set_network(management_network)
-compute1_management_nic.set_network(management_network)
+if not CONFIG.net_direct:
+  controller_management_nic.set_network(management_network)
+  compute1_management_nic.set_network(management_network)
+else:
+  controller.add_netdirect(management_network)
+  compute1.add_netdirect(management_network)
 
 # set up provider network
 provider_network = SwitchNet()
 provider_network.name = 'provider_net'
 e.add_network(provider_network)
-controller_provider_nic.set_network(provider_network)
-compute1_provider_nic.set_network(provider_network)
+if not CONFIG.net_direct:
+  controller_provider_nic.set_network(provider_network)
+  compute1_provider_nic.set_network(provider_network)
+else:
+  controller.add_netdirect(provider_network)
+  compute1.add_netdirect(provider_network)
 
-config_experiment_sync(e, CONFIG.sync, CONFIG.sync_period)
+config_experiment_sync(
+    e, sync=CONFIG.sync, pci_latency=CONFIG.pci_latency, eth_latency=CONFIG.eth_latency)
 
 experiments = [e]

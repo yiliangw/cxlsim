@@ -1,26 +1,15 @@
-.PHONY: qemu-ubuntu-compute1
-qemu-ubuntu-compute1: $(ubuntu_dimg_o)compute1/disk.qcow2 $(config_deps)
-	sudo -E $(qemu) -machine q35,accel=kvm -cpu host -smp 4 -m 16G \
-	-drive file=$(word 1, $^),media=disk,format=qcow2,if=ide,index=0 \
-	-netdev bridge,id=net-management,br=$(call confget,.host.bridges.management.name) \
-	-device virtio-net-pci,netdev=net-management,mac=$(call confget,.host.qemu_mac_list[3]) \
-	-netdev bridge,id=net-provider,br=$(call confget,.host.bridges.provider.name) \
-	-device virtio-net-pci,netdev=net-provider,mac=$(call confget,.host.qemu_mac_list[4]) \
-	-boot c \
-	-display none -serial mon:stdio
-
-$(ubuntu_dimg_o)compute%/disk.qcow2: $(ubuntu_dimg_o)compute%_phase2/disk.qcow2
-	mkdir -p $(@D)
-	rm -f $@
+$(ubuntu_dimg_o)compute%/disk.qcow2: $(ubuntu_dimg_o)compute%_phase2/disk.qcow2 | $(ubuntu_dimg_o)compute%/
+	@rm -f $@
 	ln -s $(shell realpath --relative-to=$(dir $@) $<) $@
 
 .PRECIOUS: $(ubuntu_dimg_o)compute%_phase2/disk.qcow2
-$(ubuntu_dimg_o)compute%_phase2/disk.qcow2: $(ubuntu_dimg_o)compute%_phase1/disk.qcow2 $(b)compute%/phase2/input.tar $(d)phase2/install.sh $(extend_hcl) $(packer) $(platform_config_deps)
+$(ubuntu_dimg_o)compute%_phase2/disk.qcow2: $(ubuntu_dimg_o)compute%_phase1/disk.qcow2 $(b)compute%/phase2/input.tar $(d)phase2/install.sh $(extend_hcl) $(packer) $(platform_config_deps) | $(ubuntu_dimg_o)
 	rm -rf $(@D)
-	mkdir -p $(dir $(@D))
 	$(packer_run) build \
 	-var "base_img=$(word 1,$^)" \
 	-var "disk_size=$(call conffget,platform,.ubuntu.disk.size)" \
+	-var "cpus=$(IMAGE_BUILD_CPUS)" \
+	-var "memory=$(IMAGE_BUILD_MEMORY)" \
 	-var "out_dir=$(@D)" \
 	-var "out_name=$(@F)" \
 	-var "user_name=root" \
@@ -30,12 +19,13 @@ $(ubuntu_dimg_o)compute%_phase2/disk.qcow2: $(ubuntu_dimg_o)compute%_phase1/disk
 	$(extend_hcl)
 
 .PRECIOUS: $(ubuntu_dimg_o)compute%_phase1/disk.qcow2
-$(ubuntu_dimg_o)compute%_phase1/disk.qcow2: $(ubuntu_base_dimg) $(b)compute%/phase1/input.tar $(d)phase1/install.sh $(extend_hcl) $(packer) 
+$(ubuntu_dimg_o)compute%_phase1/disk.qcow2: $(ubuntu_base_dimg) $(b)compute%/phase1/input.tar $(d)phase1/install.sh $(extend_hcl) $(packer) | $(ubuntu_dimg_o)
 	rm -rf $(@D)
-	mkdir -p $(dir $(@D))
 	$(packer_run) build \
 	-var "base_img=$(word 1,$^)" \
 	-var "disk_size=$(call conffget,platform,.ubuntu.disk.size)" \
+	-var "cpus=$(IMAGE_BUILD_CPUS)" \
+	-var "memory=$(IMAGE_BUILD_MEMORY)" \
 	-var "out_dir=$(@D)" \
 	-var "out_name=$(@F)" \
 	-var "user_name=root" \
@@ -51,33 +41,30 @@ $(b)compute%/phase1/input.tar:
 
 $(b)compute1/phase2/input.tar: $(addprefix $(b)compute1/phase2/input/, \
 	$(ubuntu_phase2_common_input) \
-	$(addprefix prepare/, run.sh chrony.conf nova.sh nova.conf neutron.sh neutron/neutron.conf neutron/openvswitch_agent.ini))
-	mkdir -p $(@D)
+	$(addprefix prepare/, run.sh chrony.conf nova.sh nova.conf neutron.sh neutron/neutron.conf neutron/openvswitch_agent.ini)) | $(b)compute1/phase2/
 	tar -C $(@D)/input -cf $@ .
 
 INPUT_TAR_ALL += $(b)compute1/phase2/input.tar
 
-$(o)compute%.yaml: $(d)compute%.yaml.tpl $(config_deps)
-	mkdir -p $(@D)
+$(o)compute%.yaml: $(d)compute%.yaml.tpl $(config_deps) | $(o)
 	$(call confsed,$<,$@.tmp)
 	$(yq) eval-all 'select(fileIndex == 0) * select(fileIndex == 1) | explode(.) ' $@.tmp $(config_yaml) > $@
 	rm $@.tmp
 
-$(b)compute%.sed: $(o)compute%.yaml $(yq)
-	mkdir -p $(@D)
+$(b)compute%.sed: $(o)compute%.yaml $(yq) | $(b)
 	$(call yaml2sed,$<,$@)
 
+inputd_ := $(b)compute1/phase2/input/
 
-$(b)compute1/phase2/input/%: $(d)phase2/input/%
-	mkdir -p $(@D)
+$(inputd_)%: $(d)phase2/input/%
+	@mkdir -p $(@D)
 	cp $< $@
-$(b)compute1/phase2/input/%: $(d)../common/phase2/input/%
-	mkdir -p $(@D)
+$(inputd_)%: $(d)../common/phase2/input/%
+	@mkdir -p $(@D)
 	cp $< $@
-$(b)compute1/phase2/input/%: $(b)compute1.sed $(d)phase2/input/%.tpl
-	mkdir -p $(@D)
+$(inputd_)%: $(b)compute1.sed $(d)phase2/input/%.tpl
+	@mkdir -p $(@D)
 	sed -f $(word 1, $^) $(word 2, $^) > $@
-$(b)compute1/phase2/input/%: $(b)compute1.sed $(d)../common/phase2/input/%.tpl
-	mkdir -p $(@D)
+$(inputd_)%: $(b)compute1.sed $(d)../common/phase2/input/%.tpl
+	@mkdir -p $(@D)
 	sed -f $(word 1, $^) $(word 2, $^) > $@
-

@@ -8,8 +8,8 @@ $(ubuntu_base_dimg): $(b)input.tar $(b)seed.raw $(d)install.sh $(platform_config
 	-var "iso_cksum_url=$(call conffget,platform,.ubuntu.disk.iso_cksum_url)" \
 	-var "out_dir=$(@D)" \
 	-var "out_name=$(@F)" \
-	-var "cpus=$(shell echo $$((`nproc` / 2)))" \
-	-var "memory=$(shell echo $$((`free -m | awk '/^Mem:/ {print $$4}'` / 2)))" \
+	-var "cpus=$(IMAGE_BUILD_CPUS)" \
+	-var "memory=$(IMAGE_BUILD_MEMORY)" \
 	-var "seedimg=$(word 2,$^)" \
 	-var "user_name=root" \
 	-var "user_password=$(call conffget,platform,.ubuntu.root.password)" \

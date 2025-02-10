@@ -26,11 +26,23 @@ class OpenstackNodeConfig(NodeConfig):
         "earlyprintk=ttyS0 console=ttyS0 " \
         "net.ifnames=0 " \
         "root=/dev/sda1 simbricks_guest_input=/dev/sdb rw"
+    self.force_mac_addrs = {}
 
   def prepare_pre_cp(self):
-    return super().prepare_pre_cp() + [
+    cmds = super().prepare_pre_cp()
+    cmds += [
         'sleep 5'  # give the system enough to initialize
     ]
+    cmds += [
+        f'ip link set dev {dev} address {mac}' for dev, mac in self.force_mac_addrs.items()
+    ]
+    cmds += [
+        'systemctl restart systemd-networkd',
+    ]
+    cmds += [
+        f'ip link show dev {dev}' for dev in self.force_mac_addrs
+    ]
+    return cmds
 
 
 class OpenstackGem5Host(Gem5Host):

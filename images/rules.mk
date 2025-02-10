@@ -1,6 +1,9 @@
 PACKER_VERSION := 1.11.2
 PACKER_ZIP_URL := https://releases.hashicorp.com/packer/$(PACKER_VERSION)/packer_$(PACKER_VERSION)_linux_amd64.zip
 
+IMAGE_BUILD_CPUS := $(shell echo $$((`nproc` / 4 * 3)))
+IMAGE_BUILD_MEMORY := $(shell echo $$((`free -m | awk '/^Mem:/ {print $$4}'` / 4 * 3)))
+
 qemu := qemu-system-x86_64
 qemu_img := qemu-img
 virt_copy_out := virt-copy-out
