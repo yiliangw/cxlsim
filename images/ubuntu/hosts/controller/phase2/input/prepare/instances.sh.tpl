@@ -12,7 +12,7 @@ openstack network create  --share --external \
 openstack subnet create --network provider \
   --allocation-pool start={{ .openstack.network.provider.ip_pool.start }},end={{ .openstack.network.provider.ip_pool.end }} \
   --dns-nameserver {{ .openstack.network.provider.nameserver }} --gateway {{ .openstack.network.provider.gateway }} \
-  --subnet-range {{ .openstack.network.provider.subnet }} provider
+  --subnet-range {{ .openstack.network.provider.subnet }}/{{ .openstack.network.provider.mask_len }} provider
 
 openstack port create --project {{ .openstack.id.nonadmin.project }} --network provider \
   --fixed-ip ip-address={{ .openstack.instances.mysql.server.ip }} mysql.server
@@ -37,7 +37,7 @@ glance image-create --name "mysql.client" --file images/mysql_client.qcow2 --dis
 # openstack subnet create --network selfservice \
 #   --dns-nameserver {{ .openstack.network.selfservice.nameserver }} \
 #   --gateway {{ .openstack.network.selfservice.gateway }} \
-#   --subnet-range {{ .openstack.network.selfservice.subnet }}  selfservice
+#   --subnet-range {{ .openstack.network.selfservice.subnet }}/{{ .openstack.network.selfservice.mask_len }}  selfservice
 
 # # Create the router
 # openstack router create router && sleep 3

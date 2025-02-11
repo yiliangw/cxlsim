@@ -28,7 +28,7 @@ sudo -E apt-get install -y \
   libssl-dev \
   libelf-dev \
   bc \
-  dwarves \
+  dwarves
 
 # Other packages
 sudo -E apt-get install -y \
@@ -100,3 +100,5 @@ sudo cp /boot/initrd.img /root/output/initrd.img
 
 popd
 rm -rf /tmp/input
+
+sudo cloud-init clean # so that the disk can be resized for different nodes.

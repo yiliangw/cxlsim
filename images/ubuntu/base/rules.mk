@@ -1,11 +1,11 @@
 ubuntu_base_dimg := $(ubuntu_dimg_o)base/disk.qcow2
 ubuntu_dimgs += $(ubuntu_base_dimg)
-$(ubuntu_base_dimg): $(b)input.tar $(b)seed.raw $(d)install.sh $(platform_config_deps) $(base_hcl) $(packer)
+$(ubuntu_base_dimg): $(b)input.tar $(o)seed.raw $(d)install.sh $(platform_config_deps) $(base_hcl) $(packer)
 	rm -rf $(@D)
 	$(packer_run) build \
-	-var "disk_size=$(call conffget,platform,.ubuntu.disk.size)" \
-	-var "iso_url=$(call conffget,platform,.ubuntu.disk.iso_url)" \
-	-var "iso_cksum_url=$(call conffget,platform,.ubuntu.disk.iso_cksum_url)" \
+	-var "disk_size=$(call conffget,platform,.ubuntu.disks.base.size)" \
+	-var "iso_url=$(call conffget,platform,.ubuntu.disks.base.iso_url)" \
+	-var "iso_cksum_url=$(call conffget,platform,.ubuntu.disks.base.iso_cksum_url)" \
 	-var "out_dir=$(@D)" \
 	-var "out_name=$(@F)" \
 	-var "cpus=$(IMAGE_BUILD_CPUS)" \
@@ -16,6 +16,15 @@ $(ubuntu_base_dimg): $(b)input.tar $(b)seed.raw $(d)install.sh $(platform_config
 	-var "input_tar_src=$(word 1,$^)" \
 	-var "install_script=$(word 3,$^)" \
 	$(base_hcl)
+
+$(o)seed.raw: $(b)user-data $(b)meta-data | $(o)
+	cloud-localds $@ $^
+
+$(b)user-data: $(d)user-data.tpl $(platform_config_deps) | $(b)
+	$(call conffsed,platform,$<,$@)
+
+$(b)meta-data: | $(b)
+	tee $@ < /dev/null > /dev/null
 
 $(b)input.tar: $(addprefix $(b)input/, linux/README simbricks-guestinit.sh simbricks-guestinit.service m5 \
 	$(addprefix ssh/, id_rsa id_rsa.pub config)) | $(b)
@@ -43,12 +52,3 @@ $(b)input/ssh/%: $(d)input/ssh/% | $(b)input/ssh/
 $(ubuntu_base_secondary_img):
 	@mkdir -p $(@D)
 	$(qemu_img) create -f qcow2 $@ $(UBUNTU_SECONDARY_DISK_SZ)
-
-$(b)user-data: $(d)user-data.tpl $(platform_config_deps) | $(b)
-	$(call conffsed,platform,$<,$@)
-
-$(b)meta-data: | $(b)
-	tee $@ < /dev/null > /dev/null
-
-$(b)seed.raw: $(b)user-data $(b)meta-data | $(b)
-	cloud-localds $@ $^

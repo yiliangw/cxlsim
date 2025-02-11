@@ -8,6 +8,8 @@ ubuntu_dimgs :=
 .PRECIOUS: $(ubuntu_dimg_o)%
 
 $(eval $(call include_rules,$(d)base/rules.mk))
+$(eval $(call include_rules,$(d)hosts/rules.mk))
+$(eval $(call include_rules,$(d)gateway/rules.mk))
 
 ubuntu_vmlinux := $(o)vmlinux
 ubuntu_bzImage := $(o)bzImage
@@ -34,8 +36,6 @@ $(ubuntu_img_o)config: $(ubuntu_base_dimg) | $(o)
 	touch $@
 
 ubuntu_kernel_cmdline := earlyprintk=ttyS0 console=ttyS0 root=/dev/sda1 net.ifnames=0 rw
-
-$(eval $(call include_rules,$(d)hosts/rules.mk))
 
 $(o)tmpdisks/%/disk.qcow2: $(ubuntu_dimg_o)%/disk.qcow2 | $(o)tmpdisks/%/
 	@rm -f $@

@@ -6,3 +6,6 @@ users:
     sudo: ALL=(ALL) NOPASSWD:ALL
     shell: /bin/bash
     lock_passwd: false
+# runcmd:
+#   - systemctl mask systemd-networkd-wait-online # Do not wait for the network during boot
+#   - systemctl set-default multi-user.target # Disable graphical interface

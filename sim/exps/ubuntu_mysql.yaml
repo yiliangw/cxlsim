@@ -6,6 +6,11 @@ host_sim: 'gem5'
 net_direct: true
 nic_sim: 'e1000'
 hosts:
+  gateway:
+    cores: 2
+    memory: 2048
+    management_mac: '52:54:00:11:10:00'
+    provider_mac: '52:54:00:11:11:00'
   controller:
     cores: 8
     memory: 16384

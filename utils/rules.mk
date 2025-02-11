@@ -6,29 +6,29 @@ nat_script := $(d)nat.sh
 setup-bridges: $(config_deps)
 	INTERNET_IF=$(call confget,.host.internet_if) \
 	BRIDGE_IF=$(call confget,.host.bridges.management.name) \
-	BRIDGE_IF_CIDR=$(call confget,.openstack.network.management.gateway)/$(call confget,.openstack.network.management.mask_len) \
+	BRIDGE_IF_CIDR=$(call confget,.host.bridges.management.ip)/$(call confget,.openstack.network.management.mask_len) \
 	$(bridge_script) setup
 	INTERNET_IF=$(call confget,.host.internet_if) \
 	BRIDGE_IF=$(call confget,.host.bridges.provider.name) \
-	BRIDGE_IF_CIDR=$(call confget,.openstack.network.provider.gateway)/$(call confget,.openstack.network.provider.mask_len) \
+	BRIDGE_IF_CIDR=$(call confget,.host.bridges.provider.ip)/$(call confget,.openstack.network.provider.mask_len) \
 	$(bridge_script) setup
 	INTERNET_IF=$(call confget,.host.internet_if) \
 	BRIDGE_IF=$(call confget,.host.bridges.selfservice.name) \
-	BRIDGE_IF_CIDR=$(call confget,.openstack.network.selfservice.gateway)/$(call confget,.openstack.network.selfservice.mask_len) \
+	BRIDGE_IF_CIDR=$(call confget,.host.bridges.selfservice.ip)/$(call confget,.openstack.network.selfservice.mask_len) \
 	$(bridge_script) setup 
 
 cleanup-bridges: $(config_deps)
 	INTERNET_IF=$(call confget,.host.internet_if) \
 	BRIDGE_IF=$(call confget,.host.bridges.management.name) \
-	BRIDGE_IF_CIDR=$(call confget,.openstack.network.management.gateway)/$(call confget,.openstack.network.management.mask_len) \
+	BRIDGE_IF_CIDR=$(call confget,.host.bridges.management.ip)/$(call confget,.openstack.network.management.mask_len) \
 	$(bridge_script) cleanup 
 	INTERNET_IF=$(call confget,.host.internet_if) \
 	BRIDGE_IF=$(call confget,.host.bridges.provider.name) \
-	BRIDGE_IF_CIDR=$(call confget,.openstack.network.provider.gateway)/$(call confget,.openstack.network.provider.mask_len) \
+	BRIDGE_IF_CIDR=$(call confget,.host.bridges.provider.ip)/$(call confget,.openstack.network.provider.mask_len) \
 	$(bridge_script) cleanup 
 	INTERNET_IF=$(call confget,.host.internet_if) \
 	BRIDGE_IF=$(call confget,.host.bridges.selfservice.name) \
-	BRIDGE_IF_CIDR=$(call confget,.openstack.network.selfservice.gateway)/$(call confget,.openstack.network.selfservice.mask_len) \
+	BRIDGE_IF_CIDR=$(call confget,.host.bridges.selfservice.ip)/$(call confget,.openstack.network.selfservice.mask_len) \
 	$(bridge_script) cleanup 
 
 setup-nat: $(config_deps)

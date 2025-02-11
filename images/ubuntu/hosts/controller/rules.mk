@@ -7,7 +7,7 @@ $(ubuntu_dimg_o)controller_phase2/disk.qcow2: $(ubuntu_dimg_o)controller_phase1/
 	rm -rf $(@D)
 	$(packer_run) build \
 	-var "base_img=$(word 1, $^)" \
-	-var "disk_size=$(call conffget,platform,.ubuntu.disk.size)" \
+	-var "disk_size=$(call conffget,platform,.ubuntu.disks.controller.size)" \
 	-var "cpus=$(IMAGE_BUILD_CPUS)" \
 	-var "memory=$(IMAGE_BUILD_MEMORY)" \
 	-var "out_dir=$(@D)" \
@@ -23,7 +23,7 @@ $(ubuntu_dimg_o)controller_phase1/disk.qcow2: $(ubuntu_base_dimg) $(b)phase1/inp
 	rm -rf $(@D)
 	$(packer_run) build \
 	-var "base_img=$<" \
-	-var "disk_size=$(call conffget,platform,.ubuntu.disk.size)" \
+	-var "disk_size=$(call conffget,platform,.ubuntu.disks.controller.size)" \
 	-var "cpus=$(IMAGE_BUILD_CPUS)" \
 	-var "memory=$(IMAGE_BUILD_MEMORY)" \
 	-var "out_dir=$(@D)" \
@@ -32,6 +32,7 @@ $(ubuntu_dimg_o)controller_phase1/disk.qcow2: $(ubuntu_base_dimg) $(b)phase1/inp
 	-var "user_password=$(call conffget,platform,.ubuntu.root.password)" \
 	-var "input_tar_src=$(word 2,$^)" \
 	-var "install_script=$(word 3,$^)" \
+	-var "use_backing_file=false" \
 	$(extend_hcl)
 
 $(b)phase1/input.tar:

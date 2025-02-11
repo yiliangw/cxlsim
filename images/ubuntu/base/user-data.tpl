@@ -15,3 +15,5 @@ runcmd:
   - sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config  # Allow root login with key or password
   - sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config  # Enable password auth
   - systemctl restart ssh  # Restart SSH to apply the changes
+  - systemctl mask systemd-networkd-wait-online # Do not wait for the network during boot
+  - systemctl set-default multi-user.target # Disable graphical interface
