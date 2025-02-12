@@ -12,7 +12,7 @@ openstack_config_deps := $(yq) $(b)openstack.sed $(d)openstack.yaml
 misc_config_deps := $(yq) $(b)misc.sed $(d)misc.yaml
 host_config_deps := $(yq) $(b)host.sed $(d)host.yaml
 
-config_yaml_all := $(d)misc.yaml $(d)platform.yaml $(d)openstack.yaml $(d)host.yaml 
+config_yaml_all := $(d)misc.yaml $(d)platform.yaml $(d)openstack.yaml
 
 config_yaml := $(o)config.yaml
 config_sed := $(b)config.sed

@@ -10,10 +10,13 @@ host:
   bridges:
     management:
       name: baize-mana-br
-      ip: 10.10.10.2
+      ip: 10.10.10.1
+      netmask_len: 24
     provider:
       name: baize-prov-br
-      ip: 10.10.11.2
+      ip: 10.10.11.1
+      netmask_len: 24
     selfservice:
       name: baize-serv-br
-      ip: 10.10.12.2
+      ip: 10.10.12.1
+      netmask_len: 24

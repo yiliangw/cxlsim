@@ -54,16 +54,43 @@ qemu-ubuntu-base: $(o)tmpdisks/base/disk.qcow2 $(ubuntu_vmlinux) $(ubuntu_initrd
 	-display none -serial mon:stdio
 
 .PHONY: qemu-ubuntu-% qemu-ubuntu-bridge-%
-qemu-ubuntu-bridge-%: $(o)tmpdisks/%/disk.qcow2 $(config_deps) $(ubuntu_vmlinux) $(ubuntu_initrd)
+
+qemu-ubuntu-bridge-controller: $(o)tmpdisks/controller/disk.qcow2 $(host_config_deps) $(ubuntu_vmlinux) $(ubuntu_initrd)
 	sudo -E $(qemu) -machine q35,accel=kvm -cpu host -smp 4 -m 16G \
 	-kernel $(ubuntu_vmlinux) \
 	-append "$(ubuntu_kernel_cmdline)" \
 	-initrd $(ubuntu_initrd) \
 	-drive file=$(word 1, $^),media=disk,format=qcow2,if=ide,index=0 \
-	-netdev bridge,id=net-management,br=$(call confget,.host.bridges.management.name) \
-	-device virtio-net-pci,netdev=net-management,mac=$(call confget,.host.qemu_mac_list[0]) \
-	-netdev bridge,id=net-provider,br=$(call confget,.host.bridges.provider.name) \
-	-device virtio-net-pci,netdev=net-provider,mac=$(call confget,.host.qemu_mac_list[1]) \
+	-netdev bridge,id=net-management,br=$(call conffget,host,.bridges.management.name) \
+	-device virtio-net-pci,netdev=net-management,mac=$(call conffget,host,.qemu_mac_list[0]) \
+	-netdev bridge,id=net-provider,br=$(call conffget,host,.bridges.provider.name) \
+	-device virtio-net-pci,netdev=net-provider,mac=$(call conffget,host,.qemu_mac_list[1]) \
+	-boot c \
+	-display none -serial mon:stdio
+
+qemu-ubuntu-bridge-compute1: $(o)tmpdisks/compute1/disk.qcow2 $(host_config_deps) $(ubuntu_vmlinux) $(ubuntu_initrd)
+	sudo -E $(qemu) -machine q35,accel=kvm -cpu host -smp 4 -m 16G \
+	-kernel $(ubuntu_vmlinux) \
+	-append "$(ubuntu_kernel_cmdline)" \
+	-initrd $(ubuntu_initrd) \
+	-drive file=$(word 1, $^),media=disk,format=qcow2,if=ide,index=0 \
+	-netdev bridge,id=net-management,br=$(call conffget,host,.bridges.management.name) \
+	-device virtio-net-pci,netdev=net-management,mac=$(call conffget,host,.qemu_mac_list[3]) \
+	-netdev bridge,id=net-provider,br=$(call conffget,host,.bridges.provider.name) \
+	-device virtio-net-pci,netdev=net-provider,mac=$(call conffget,host,.qemu_mac_list[4]) \
+	-boot c \
+	-display none -serial mon:stdio
+
+qemu-ubuntu-bridge-%: $(o)tmpdisks/%/disk.qcow2 $(host_config_deps) $(ubuntu_vmlinux) $(ubuntu_initrd)
+	sudo -E $(qemu) -machine q35,accel=kvm -cpu host -smp 4 -m 16G \
+	-kernel $(ubuntu_vmlinux) \
+	-append "$(ubuntu_kernel_cmdline)" \
+	-initrd $(ubuntu_initrd) \
+	-drive file=$(word 1, $^),media=disk,format=qcow2,if=ide,index=0 \
+	-netdev bridge,id=net-management,br=$(call conffget,host,.bridges.management.name) \
+	-device virtio-net-pci,netdev=net-management,mac=$(call conffget,host,.qemu_mac_list[0]) \
+	-netdev bridge,id=net-provider,br=$(call conffget,host,.bridges.provider.name) \
+	-device virtio-net-pci,netdev=net-provider,mac=$(call conffget,host,.qemu_mac_list[1]) \
 	-boot c \
 	-display none -serial mon:stdio
 
