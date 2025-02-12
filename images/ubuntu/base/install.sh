@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -xe
+set -eux
 
 # These groups will only take effect from the next login
 sudo usermod -aG sudo $USER
@@ -100,5 +100,3 @@ sudo cp /boot/initrd.img /root/output/initrd.img
 
 popd
 rm -rf /tmp/input
-
-sudo cloud-init clean # so that the disk can be resized for different nodes.
