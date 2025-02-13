@@ -39,7 +39,7 @@ class OpenstackNodeConfig(NodeConfig):
           f'ip link set dev {dev} address {mac}' for dev, mac in self.force_mac_addrs.items()
       ]
       cmds += [
-          'netplan apply',
+          'systemctl restart systemd-networkd',
       ]
     if len(self.dhcp_ifaces) > 0:
       cmds += [
