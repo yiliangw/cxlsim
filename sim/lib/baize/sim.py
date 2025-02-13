@@ -27,20 +27,36 @@ class OpenstackNodeConfig(NodeConfig):
         "net.ifnames=0 " \
         "root=/dev/sda1 simbricks_guest_input=/dev/sdb rw"
     self.force_mac_addrs = {}
+    self.dhcp_ifaces = []
 
   def prepare_pre_cp(self):
     cmds = super().prepare_pre_cp()
     cmds += [
         'sleep 5'  # give the system enough to initialize
     ]
+    if len(self.force_mac_addrs) > 0:
+      cmds += [
+          f'ip link set dev {dev} address {mac}' for dev, mac in self.force_mac_addrs.items()
+      ]
+      cmds += [
+          'netplan apply',
+      ]
+    if len(self.dhcp_ifaces) > 0:
+      cmds += [
+          f'ip link set dev {iface} up' for iface in self.dhcp_ifaces
+      ]
+      cmds += [
+          'sleep 3'
+      ]
+      cmds += [
+          'dhclient ' + iface for iface in self.dhcp_ifaces
+      ]
+      cmds += [
+          'sleep 3'
+      ]
     cmds += [
-        f'ip link set dev {dev} address {mac}' for dev, mac in self.force_mac_addrs.items()
-    ]
-    cmds += [
-        'netplan apply',
-    ]
-    cmds += [
-        f'ip link show dev {dev}' for dev in self.force_mac_addrs
+        'ip link show',
+        'ip addr show'
     ]
     return cmds
 
@@ -125,6 +141,7 @@ class OpenstackQemuHost(QemuHost):
   def __init__(self, node_config: OpenstackNodeConfig):
     super().__init__(node_config)
     self.node_config: OpenstackNodeConfig
+    self.ssh_port = None
 
   def prep_cmds(self, env: ExpEnv) -> tp.List[str]:
     return [
@@ -176,6 +193,10 @@ class OpenstackQemuHost(QemuHost):
       else:
         cmd += ',sync=off'
       cmd += ' '
+
+    if self.ssh_port:
+      cmd += f'-netdev user,id=user-net,hostfwd=tcp::{self.ssh_port}-:22 '
+      cmd += '-device e1000,netdev=user-net '
 
     # qemu does not currently support net direct ports
     assert len(self.net_directs) == 0

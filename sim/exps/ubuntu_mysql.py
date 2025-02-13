@@ -50,6 +50,10 @@ class GatewayApp(AppConfig):
 
   def prepare_pre_cp(self) -> tp.List[str]:
     """Commands to run to prepare this application before checkpointing."""
+    if CONFIG.ssh_control:
+      return [
+          'while true; do sleep 30; done'
+      ]
     return [
         f'while [ ! -f /root/.prepare.done ]; do sleep 10; done',
         'sleep 3',
@@ -65,6 +69,10 @@ class ControllerApp(AppConfig):
 
   def prepare_pre_cp(self) -> tp.List[str]:
     """Commands to run to prepare this application before checkpointing."""
+    if CONFIG.ssh_control:
+      return [
+          'while true; do sleep 30; done'
+      ]
     return [
         # ensure connection from both side can be setup
         "while ! ssh compute1 'while ! ssh controller uptime; do sleep 3; done'; do sleep 3; done",
@@ -86,6 +94,10 @@ class ComputeApp(AppConfig):
 
   def prepare_pre_cp(self) -> tp.List[str]:
     """Commands to run to prepare this application before checkpointing."""
+    if CONFIG.ssh_control:
+      return [
+          'while true; do sleep 30; done'
+      ]
     return [
         f'while [ ! -f /root/.prepare.done ]; do sleep 10; done',
         'sleep 3',
@@ -94,7 +106,7 @@ class ComputeApp(AppConfig):
   def run_cmds(self, node: NodeConfig) -> tp.List[str]:
     """Commands to run for this application."""
     return [
-        'sleep inifinity'
+        'sleep infinity'
     ]
 
 
@@ -107,10 +119,11 @@ gateway_config.disk_image_path = projenv.get_ubuntu_disk('gateway')
 gateway_config.raw_disk_image_path = projenv.get_ubuntu_raw_disk('gateway')
 gateway_config.cores = CONFIG.hosts.gateway.cores
 gateway_config.memory = CONFIG.hosts.gateway.memory
-gateway_config.force_mac_addrs = {
-    'eth0': CONFIG.hosts.gateway.management_mac,
-    'eth1': CONFIG.hosts.gateway.provider_mac,
-}
+if CONFIG.net_direct:
+  gateway_config.force_mac_addrs = {
+      'eth0': CONFIG.hosts.gateway.management_mac,
+      'eth1': CONFIG.hosts.gateway.provider_mac,
+  }
 gateway_config.app = GatewayApp()
 gateway = HostSimCls(gateway_config)
 gateway.name = 'gateway'
@@ -121,11 +134,13 @@ e.add_host(gateway)
 if not CONFIG.net_direct:
   gateway_management_nic = NicSimCls()
   gateway_management_nic.name = 'management'
+  gateway_management_nic.mac = CONFIG.hosts.gateway.management_mac
   e.add_nic(gateway_management_nic)
   gateway.add_nic(gateway_management_nic)
 
   gateway_provider_nic = NicSimCls()
   gateway_provider_nic.name = 'provider'
+  gateway_provider_nic.mac = CONFIG.hosts.gateway.provider_mac
   e.add_nic(gateway_provider_nic)
   gateway.add_nic(gateway_provider_nic)
 
@@ -137,10 +152,11 @@ controller_config.raw_disk_image_path = projenv.get_ubuntu_raw_disk(
     'controller')
 controller_config.cores = CONFIG.hosts.controller.cores
 controller_config.memory = CONFIG.hosts.controller.memory
-controller_config.force_mac_addrs = {
-    'eth0': CONFIG.hosts.controller.management_mac,
-    'eth1': CONFIG.hosts.controller.provider_mac,
-}
+if CONFIG.net_direct:
+  controller_config.force_mac_addrs = {
+      'eth0': CONFIG.hosts.controller.management_mac,
+      'eth1': CONFIG.hosts.controller.provider_mac,
+  }
 controller_config.app = ControllerApp()
 controller = HostSimCls(controller_config)
 controller.name = 'controller'
@@ -151,11 +167,13 @@ e.add_host(controller)
 if not CONFIG.net_direct:
   controller_management_nic = NicSimCls()
   controller_management_nic.name = 'management'
+  controller_management_nic.mac = CONFIG.hosts.controller.management_mac
   e.add_nic(controller_management_nic)
   controller.add_nic(controller_management_nic)
 
   controller_provider_nic = NicSimCls()
   controller_provider_nic.name = 'provider'
+  controller_provider_nic.mac = CONFIG.hosts.controller.provider_mac
   e.add_nic(controller_provider_nic)
   controller.add_nic(controller_provider_nic)
 
@@ -165,10 +183,11 @@ compute1_config.disk_image_path = projenv.get_ubuntu_disk('compute1')
 compute1_config.raw_disk_image_path = projenv.get_ubuntu_raw_disk('compute1')
 compute1_config.cores = CONFIG.hosts.compute1.cores
 compute1_config.memory = CONFIG.hosts.compute1.memory
-compute1_config.force_mac_addrs = {
-    'eth0': CONFIG.hosts.compute1.management_mac,
-    'eth1': CONFIG.hosts.compute1.provider_mac,
-}
+if CONFIG.net_direct:
+  compute1_config.force_mac_addrs = {
+      'eth0': CONFIG.hosts.compute1.management_mac,
+      'eth1': CONFIG.hosts.compute1.provider_mac,
+  }
 compute1_config.app = ComputeApp()
 compute1 = HostSimCls(compute1_config)
 compute1.name = 'compute1'
@@ -179,11 +198,13 @@ e.add_host(compute1)
 if not CONFIG.net_direct:
   compute1_management_nic = NicSimCls()
   compute1_management_nic.name = 'management'
+  compute1_management_nic.mac = CONFIG.hosts.compute1.management_mac
   e.add_nic(compute1_management_nic)
   compute1.add_nic(compute1_management_nic)
 
   compute1_provider_nic = NicSimCls()
   compute1_provider_nic.name = 'provider'
+  compute1_provider_nic.mac = CONFIG.hosts.compute1.provider_mac
   e.add_nic(compute1_provider_nic)
   compute1.add_nic(compute1_provider_nic)
 
@@ -212,6 +233,15 @@ else:
   gateway.add_netdirect(provider_network)
   controller.add_netdirect(provider_network)
   compute1.add_netdirect(provider_network)
+
+if CONFIG.ssh_control:
+  assert HostSimCls == OpenstackQemuHost
+  controller.ssh_port = CONFIG.hosts.controller.qemu_ssh_port
+  compute1.ssh_port = CONFIG.hosts.compute1.qemu_ssh_port
+  gateway.ssh_port = CONFIG.hosts.gateway.qemu_ssh_port
+  controller_config.dhcp_ifaces.append('eth2')
+  compute1_config.dhcp_ifaces.append('eth2')
+  gateway_config.dhcp_ifaces.append('eth2')
 
 config_experiment_sync(
     e, sync=CONFIG.sync, pci_latency=CONFIG.pci_latency, eth_latency=CONFIG.eth_latency)
