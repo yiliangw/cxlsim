@@ -4,6 +4,7 @@ set -xe
 pushd `dirname ${BASH_SOURCE[0]}`
 
 sudo tee /etc/nova/nova.conf < nova.conf > /dev/null
+sudo tee /etc/nova/nova-compute.conf < nova-compute.conf > /dev/null
 
 sudo systemctl restart nova-compute
 

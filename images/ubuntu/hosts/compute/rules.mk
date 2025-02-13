@@ -42,7 +42,7 @@ $(b)compute%/phase1/input.tar:
 
 $(b)compute1/phase2/input.tar: $(addprefix $(b)compute1/phase2/input/, \
 	$(ubuntu_phase2_common_input) \
-	$(addprefix prepare/, run.sh chrony.conf nova.sh nova.conf neutron.sh neutron/neutron.conf neutron/openvswitch_agent.ini)) | $(b)compute1/phase2/
+	$(addprefix prepare/, run.sh chrony.conf nova.sh nova.conf nova-compute.conf neutron.sh neutron/neutron.conf neutron/openvswitch_agent.ini)) | $(b)compute1/phase2/
 	tar -C $(@D)/input -cf $@ .
 
 INPUT_TAR_ALL += $(b)compute1/phase2/input.tar
