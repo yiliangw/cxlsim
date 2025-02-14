@@ -19,8 +19,14 @@ sudo sysctl -p
 # Setup DHCP server
 sudo tee /etc/default/isc-dhcp-server < isc-dhcp-server > /dev/null
 sudo tee /etc/dhcp/dhcpd.conf < dhcpd.conf > /dev/null
-sudo systemctl restart isc-dhcp-server
-sudo systemctl enable isc-dhcp-server
+# Conflicts with neutron-dhcp-agent
+# sudo systemctl restart isc-dhcp-server
+# sudo systemctl enable isc-dhcp-server
+sudo systemctl stop isc-dhcp-server
+sudo systemctl mask isc-dhcp-server
+
+sudo systemctl stop dnsmasq
+sudo systemctl mask dnsmasq
 
 popd
 rm -rf /tmp/input

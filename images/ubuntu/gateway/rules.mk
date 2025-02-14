@@ -55,5 +55,5 @@ $(o)gateway.yaml: $(d)local.yaml.tpl $(config_deps) | $(o)
 	$(yq) eval-all 'select(fileIndex == 0) * select(fileIndex == 1) | explode(.) ' $@.tmp $(config_yaml) > $@
 	rm $@.tmp
 
-$(b)gateway.sed: $(o)gateway.yaml $(yq) | $(b)
+$(b)gateway.sed: $(o)gateway.yaml | $(b)
 	$(call yaml2sed,$<,$@)

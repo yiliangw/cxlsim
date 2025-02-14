@@ -1,0 +1,1 @@
+- In `$(shell cmd)`, `cmd` will be executed at the time when the makefile is parsed.

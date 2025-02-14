@@ -32,7 +32,9 @@ sudo -E apt-get install -y \
 
 # Other packages
 sudo -E apt-get install -y \
-  qemu-guest-agent
+  qemu-guest-agent \
+  iproute2 \
+  iperf3
 
 mkdir /tmp/input
 pushd /tmp/input

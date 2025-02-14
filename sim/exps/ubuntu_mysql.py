@@ -119,6 +119,7 @@ gateway_config.disk_image_path = projenv.get_ubuntu_disk('gateway')
 gateway_config.raw_disk_image_path = projenv.get_ubuntu_raw_disk('gateway')
 gateway_config.cores = CONFIG.hosts.gateway.cores
 gateway_config.memory = CONFIG.hosts.gateway.memory
+gateway_config.pre_cp_tc_ifaces = ['eth0', 'eth1']
 if CONFIG.net_direct:
   gateway_config.force_mac_addrs = {
       'eth0': CONFIG.hosts.gateway.management_mac,
@@ -152,6 +153,7 @@ controller_config.raw_disk_image_path = projenv.get_ubuntu_raw_disk(
     'controller')
 controller_config.cores = CONFIG.hosts.controller.cores
 controller_config.memory = CONFIG.hosts.controller.memory
+controller_config.pre_cp_tc_ifaces = ['eth0', 'eth1']
 if CONFIG.net_direct:
   controller_config.force_mac_addrs = {
       'eth0': CONFIG.hosts.controller.management_mac,
@@ -183,6 +185,7 @@ compute1_config.disk_image_path = projenv.get_ubuntu_disk('compute1')
 compute1_config.raw_disk_image_path = projenv.get_ubuntu_raw_disk('compute1')
 compute1_config.cores = CONFIG.hosts.compute1.cores
 compute1_config.memory = CONFIG.hosts.compute1.memory
+compute1_config.pre_cp_tc_ifaces = ['eth0', 'eth1']
 if CONFIG.net_direct:
   compute1_config.force_mac_addrs = {
       'eth0': CONFIG.hosts.compute1.management_mac,

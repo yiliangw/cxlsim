@@ -1,24 +1,17 @@
-YQ_VERSION := 4.44.5
+yq := yq
 
-yq := $(o)yq_v$(YQ_VERSION)
-
-$(yq):
-	mkdir -p $(@D)
-	wget https://github.com/mikefarah/yq/releases/download/v$(YQ_VERSION)/yq_linux_amd64 -O $@
-	chmod +x $@
-
-platform_config_deps := $(yq) $(b)platform.sed $(d)platform.yaml
-openstack_config_deps := $(yq) $(b)openstack.sed $(d)openstack.yaml
-misc_config_deps := $(yq) $(b)misc.sed $(d)misc.yaml
-host_config_deps := $(yq) $(b)host.sed $(d)host.yaml
+platform_config_deps := $(b)platform.sed $(d)platform.yaml
+openstack_config_deps :=  $(b)openstack.sed $(d)openstack.yaml
+misc_config_deps :=  $(b)misc.sed $(d)misc.yaml
+host_config_deps :=  $(b)host.sed $(d)host.yaml
 
 config_yaml_all := $(d)misc.yaml $(d)platform.yaml $(d)openstack.yaml
 
 config_yaml := $(o)config.yaml
 config_sed := $(b)config.sed
-config_deps := $(yq) $(config_yaml) $(config_sed)
+config_deps := $(config_yaml) $(config_sed)
 
-$(config_yaml): $(config_yaml_all) $(yq)
+$(config_yaml): $(config_yaml_all) 
 	mkdir -p $(@D)
 	$(yq) eval-all 'select(fileIndex == 0) * select(fileIndex > 0) | explode(.)' $(config_yaml_all) > $@
 
@@ -27,11 +20,11 @@ define yaml2sed
 sed 's/\//\\\//g' $(1) | $(yq) e 'explode(.) | .. | select(. == "*") | "s/{{ ." + (path | join(".")) + " }}/" + . + "/g"' > $(2)
 endef
 
-$(config_sed): $(config_yaml) $(yq)
+$(config_sed): $(config_yaml) 
 	mkdir -p $(@D)
 	$(call yaml2sed,$<,$@)
 
-$(b)%.sed: $(d)%.yaml $(yq)
+$(b)%.sed: $(d)%.yaml 
 	mkdir -p $(@D)
 	$(call yaml2sed,$<,$@)
 

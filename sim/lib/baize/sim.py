@@ -28,6 +28,10 @@ class OpenstackNodeConfig(NodeConfig):
         "root=/dev/sda1 simbricks_guest_input=/dev/sdb rw"
     self.force_mac_addrs = {}
     self.dhcp_ifaces = []
+    self.pre_cp_tc_ifaces = []
+    self.pre_cp_tc_rate = '10mbit'
+    self.pre_cp_tc_burst = '32kb'
+    self.pre_cp_tc_latency = '200ms'
 
   def prepare_pre_cp(self):
     cmds = super().prepare_pre_cp()
@@ -54,10 +58,24 @@ class OpenstackNodeConfig(NodeConfig):
       cmds += [
           'sleep 3'
       ]
+    if len(self.pre_cp_tc_ifaces) > 0:
+      cmds += [
+          f'tc qdisc add dev {iface} root tbf rate {self.pre_cp_tc_rate} burst {self.pre_cp_tc_burst} latency {self.pre_cp_tc_latency}'
+          for iface in self.pre_cp_tc_ifaces
+      ]
     cmds += [
         'ip link show',
         'ip addr show'
     ]
+    return cmds
+
+  def prepare_post_cp(self):
+    cmds = []
+    if len(self.pre_cp_tc_ifaces) > 0:
+      cmds += [
+          f'tc qdisc del dev {iface} root'
+          for iface in self.pre_cp_tc_ifaces
+      ]
     return cmds
 
 

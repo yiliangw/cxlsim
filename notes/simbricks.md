@@ -1,0 +1,3 @@
+- Be careful that besides `sync_mode`, some simulators have other options to control the synchronization mode. For example, Gem5 needs to properly configured with certain CPU type, while there is a `sync` option for SwitchNet and Qemu.  
+
+- The bandwidth of network simulators and NIC simulators may be very limited in asynchronized mode. To prevent halting the hosts' network stack when transferring a large amount of data, users can use tools such as `tc` to control the hosts' uploading rate. To properly choose the rate, users can use tools such as `iperf` to test the system's bandwidth under the specific setting and on the specific simulation host machine. 

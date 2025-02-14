@@ -50,27 +50,45 @@ openstack keypair create --public-key ~/.ssh/id_rsa.pub mykey
 # Create security groups
 openstack security group rule create default --proto any --ingress
 
-# Launch instances on the provider network
-# provider_net_id=$(openstack network show provider -f value -c id)
-openstack server create --flavor mysql.server --image mysql.server \
-  --port mysql.server --security-group default \
-  --key-name mykey mysql.server
-openstack server create --flavor mysql.client --image mysql.client \
-  --port mysql.client --security-group default \
-  --key-name mykey mysql.client
-
-sleep 5
-
 mysql_server_ip={{ .openstack.instances.mysql.server.ip }}
 mysql_client_ip={{ .openstack.instances.mysql.client.ip }}
 user={{ .openstack.instances.user.name }}
 password={{ .openstack.instances.user.password }}
 
-while ! sshpass -p${password} ssh ${user}@${mysql_server_ip} uptime; do
-    sleep 3
+# user=cirros
+# password=gocubsgo
+# Launch instances on the provider network
+# provider_net_id=$(openstack network show provider -f value -c id)
+# openstack server create --flavor mysql.server --image cirros \
+#   --port mysql.server --security-group default \
+#   --key-name mykey mysql.server
+# openstack server create --flavor mysql.client --image cirros \
+#   --port mysql.client --security-group default \
+#   --key-name mykey mysql.client
+openstack server create --flavor mysql.server --image mysql.server \
+  --port mysql.server --security-group default \
+  --key-name mykey mysql.server
+
+sleep 30
+
+while ! ping -c 1 ${mysql_client_ip}; do
+    ping -c 1 compute1 
+    openstack server list
+    openstack server show mysql.server
+    sleep 10
 done
-while ! sshpass -p${password} ssh ${user}@${mysql_client_ip} uptime; do
-    sleep 3
+
+openstack server create --flavor mysql.client --image mysql.client \
+  --port mysql.client --security-group default \
+  --key-name mykey mysql.client
+
+sleep 30
+
+while ! ping -c 1 ${mysql_client_ip}; do
+    ping -c 1 compute1
+    openstack server list
+    openstack server show mysql.client
+    sleep 10
 done
 
 popd

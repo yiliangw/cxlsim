@@ -75,10 +75,10 @@ $(b)phase2/input.tar: $(addprefix $(p2_imgs_input_prefix), $(ubuntu_openstack_im
 $(p2_imgs_input_prefix)cirros.qcow2: | $(p2_imgs_input_prefix)
 	wget -O $@ http://download.cirros-cloud.net/0.4.0/cirros-0.4.0-x86_64-disk.img 
 
-$(p2_imgs_input_prefix)mysql_server.qcow2: $(mysql_server_disk_image) | $(p2_imgs_input_prefix)
+$(p2_imgs_input_prefix)mysql_server.qcow2: $(instances_dimg_o)mysql_server/disk.qcow2 | $(p2_imgs_input_prefix)
 	cp $< $@
 
-$(p2_imgs_input_prefix)mysql_client.qcow2: $(mysql_client_disk_image) | $(p2_imgs_input_prefix)
+$(p2_imgs_input_prefix)mysql_client.qcow2: $(instances_dimg_o)mysql_client/disk.qcow2 | $(p2_imgs_input_prefix)
 	cp $< $@
 
 $(o)controller.yaml: $(d)controller.yaml.tpl $(config_deps) | $(o)
@@ -86,5 +86,5 @@ $(o)controller.yaml: $(d)controller.yaml.tpl $(config_deps) | $(o)
 	$(yq) eval-all 'select(fileIndex == 0) * select(fileIndex == 1) | explode(.) ' $@.tmp $(config_yaml) > $@
 	rm $@.tmp
 
-$(b)controller.sed: $(o)controller.yaml $(yq) | $(b)
+$(b)controller.sed: $(o)controller.yaml | $(b)
 	$(call yaml2sed,$<,$@)

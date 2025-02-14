@@ -52,7 +52,7 @@ $(o)compute%.yaml: $(d)compute%.yaml.tpl $(config_deps) | $(o)
 	$(yq) eval-all 'select(fileIndex == 0) * select(fileIndex == 1) | explode(.) ' $@.tmp $(config_yaml) > $@
 	rm $@.tmp
 
-$(b)compute%.sed: $(o)compute%.yaml $(yq) | $(b)
+$(b)compute%.sed: $(o)compute%.yaml | $(b)
 	$(call yaml2sed,$<,$@)
 
 inputd_ := $(b)compute1/phase2/input/
