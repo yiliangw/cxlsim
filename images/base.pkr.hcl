@@ -20,6 +20,16 @@ variable "disk_size" {
   type    = string
 }
 
+variable "disk_compression" {
+  type    = string
+  default = false
+}
+
+variable "format" {
+  type    = string
+  default = "qcow2"
+}
+
 variable "out_dir" {
   type    = string
 }
@@ -53,10 +63,10 @@ source "qemu" "disk" {
   communicator     = "ssh"
   cpus             = "${var.cpus}"
   memory           = "${var.memory}"
-  format           = "qcow2"
+  format           = "${var.format}"
   disk_size        = "${var.disk_size}"
   disk_image       = true
-  disk_compression = false
+  disk_compression = "${var.disk_compression}"
   headless         = true
   iso_url          = "${var.iso_url}"
   iso_checksum     = "file:${var.iso_cksum_url}"

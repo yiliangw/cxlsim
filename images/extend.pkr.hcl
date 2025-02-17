@@ -16,6 +16,16 @@ variable "disk_size" {
   type    = string
 }
 
+variable "disk_compression" {
+  type    = bool
+  default = false
+}
+
+variable "format" {
+  type    = string
+  default = "qcow2"
+}
+
 variable "out_dir" {
   type    = string
 }
@@ -50,9 +60,9 @@ source "qemu" "disk" {
   communicator     = "ssh"
   cpus             = "${var.cpus}"
   memory           = "${var.memory}"
-  format           = "qcow2"
+  format           = "${var.format}"
   disk_image       = true
-  disk_compression = false
+  disk_compression = "${var.disk_compression}"
   # It seems that `skip_resize_disk` doesn't work. We get around by explicitly setting the original base image size
   disk_size        = "${var.disk_size}"
   headless         = true
