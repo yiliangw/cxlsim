@@ -1,14 +1,14 @@
-sync: false
+sync: true
 pci_latency: 1000 # ns
 eth_latency: 1000 # ns
-cp: false
-host_sim: 'qemu'
-net_direct: false
+cp: true
+host_sim: 'gem5'
+net_direct: true
 nic_sim: 'e1000'
-ssh_control: true
+ssh_control: false
 hosts:
   gateway:
-    cores: 2
+    cores: 1
     memory: 4096
     management_mac: '52:54:00:11:10:00'
     provider_mac: '52:54:00:11:11:00'

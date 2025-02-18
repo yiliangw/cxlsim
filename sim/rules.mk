@@ -16,8 +16,11 @@ simbricks-build: $(d)gem5_kvm.patch $(simbricks_dir) $(simbricks_dir)sims/extern
 simbricks-clean:
 	$(MAKE) -C $(simbricks_dir) clean-all
 
+TS_FORMAT := "[%T]"
+TS_PIPE := | ts $(TS_FORMAT)
+
 $(o)%.log: $(d)exps/%.py $(simbricks_run_script) $(sim_lib_files) $(config_yaml) | $(o)
-	python $(simbricks_run_script) $< $(SIMBRICKS_OPTIONS) 2>&1 | tee $@
+	python $(simbricks_run_script) $< $(SIMBRICKS_OPTIONS) 2>&1 $(TS_PIPE) | tee $@
 
 .PHONY: run-simple-ping
 run-simple-ping: $(o)simple_ping.log

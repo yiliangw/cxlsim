@@ -87,7 +87,7 @@ class GatewayApp(UbuntuAppConfig):
       ]
     else:
       cmds += [
-          f'while [ ! -f /root/.prepare.done ]; do sleep 10; done',
+          f'while [ ! -f /root/.prepare.done ]; do sleep 30; done',
           'sleep 3',
       ]
     return cmds
@@ -120,7 +120,7 @@ class ControllerApp(UbuntuAppConfig):
           f'while ! ssh {gateway_management_ip} "while ! ssh {controller_management_ip}; do sleep 3; done"; do sleep 3; done',
           "bash /root/prepare/run.sh",
           "ssh compute1 'touch /root/.prepare.done'",
-          "ssh gateway 'touch /root/.prepare.done'",
+          f"ssh {gateway_management_ip} 'touch /root/.prepare.done'",
           "sleep 3",
       ]
     return cmds
@@ -149,7 +149,7 @@ class Compute1App(UbuntuAppConfig):
       ]
     else:
       cmds += [
-          f'while [ ! -f /root/.prepare.done ]; do sleep 10; done',
+          f'while [ ! -f /root/.prepare.done ]; do sleep 30; done',
           'sleep 3',
       ]
     return cmds

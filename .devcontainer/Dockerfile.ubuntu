@@ -67,6 +67,7 @@ RUN apt-get update \
     python3-yaml \
     python3-pip \
 		sudo \
+		moreutils \
     && rm -rf /var/lib/apt/lists/* \
     && pip3 install easydict
 

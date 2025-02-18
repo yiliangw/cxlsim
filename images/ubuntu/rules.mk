@@ -57,12 +57,14 @@ qemu-ubuntu-base: $(o)tmpdisks/base/disk.qcow2 $(ubuntu_vmlinux) $(ubuntu_initrd
 
 .PHONY: qemu-ubuntu-% qemu-ubuntu-bridge-%
 
-qemu-ubuntu-bridge-controller: $(o)tmpdisks/controller/disk.qcow2 $(host_config_deps) $(ubuntu_vmlinux) $(ubuntu_initrd)
+qemu-ubuntu-bridge-controller: $(o)tmpdisks/controller_phase1/disk.qcow2 $(ubuntu_input_tar_o)controller_phase2.tar $(ubuntu_install_script_o)controller_phase2.sh $(host_config_deps) $(ubuntu_vmlinux) $(ubuntu_initrd)
 	sudo -E $(qemu) -machine q35,accel=kvm -cpu Skylake-Server -smp 8 -m 16G \
 	-kernel $(ubuntu_vmlinux) \
 	-append "$(ubuntu_kernel_cmdline)" \
 	-initrd $(ubuntu_initrd) \
 	-drive file=$(word 1, $^),media=disk,format=qcow2,if=ide,index=0 \
+	-drive file=${word 2, $^},media=disk,format=raw,if=ide,index=1 \
+	-drive file=${word 3, $^},media=disk,format=raw,if=ide,index=2 \
 	-netdev bridge,id=net-management,br=$(call conffget,host,.bridges.management.name) \
 	-device virtio-net-pci,netdev=net-management,mac=$(call conffget,host,.qemu_mac_list[0]) \
 	-netdev bridge,id=net-provider,br=$(call conffget,host,.bridges.provider.name) \
@@ -70,12 +72,14 @@ qemu-ubuntu-bridge-controller: $(o)tmpdisks/controller/disk.qcow2 $(host_config_
 	-boot c \
 	-display none -serial mon:stdio
 
-qemu-ubuntu-bridge-compute1: $(o)tmpdisks/compute1/disk.qcow2 $(host_config_deps) $(ubuntu_vmlinux) $(ubuntu_initrd)
+qemu-ubuntu-bridge-compute1: $(o)tmpdisks/compute1_phase1/disk.qcow2 $(ubuntu_input_tar_o)compute1_phase2.tar $(ubuntu_install_script_o)compute1_phase2.sh $(host_config_deps) $(ubuntu_vmlinux) $(ubuntu_initrd)
 	sudo -E $(qemu) -machine q35,accel=kvm -cpu Skylake-Server -smp 8 -m 16G \
 	-kernel $(ubuntu_vmlinux) \
 	-append "$(ubuntu_kernel_cmdline)" \
 	-initrd $(ubuntu_initrd) \
 	-drive file=$(word 1, $^),media=disk,format=qcow2,if=ide,index=0 \
+	-drive file=${word 2, $^},media=disk,format=raw,if=ide,index=1 \
+	-drive file=${word 3, $^},media=disk,format=raw,if=ide,index=2 \
 	-netdev bridge,id=net-management,br=$(call conffget,host,.bridges.management.name) \
 	-device virtio-net-pci,netdev=net-management,mac=$(call conffget,host,.qemu_mac_list[3]) \
 	-netdev bridge,id=net-provider,br=$(call conffget,host,.bridges.provider.name) \

@@ -65,7 +65,7 @@ while ! ping -c 1 ${mysql_server_ip}; do
     ping -c 1 compute1
     openstack server list
     openstack server show mysql.server
-    sleep 10
+    sleep 30
 done
 
 openstack server create --flavor mysql.client --image mysql.client \
@@ -78,7 +78,7 @@ while ! ping -c 1 ${mysql_client_ip}; do
     ping -c 1 compute1
     openstack server list
     openstack server show mysql.client
-    sleep 1
+    sleep 30
 done
 
 popd
