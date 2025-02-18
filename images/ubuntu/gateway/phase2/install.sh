@@ -1,10 +1,12 @@
 #!/bin/bash
 set -xe
 
+INPUT_TAR=${INPUT_TAR:-/dev/sdb}
+
 mkdir -p /tmp/input
 pushd /tmp/input
 
-tar xf /dev/sdb
+tar xf $INPUT_TAR
 
 # Configure network interfaces
 sudo rm -rf /etc/netplan/*

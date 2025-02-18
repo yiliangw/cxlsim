@@ -38,6 +38,14 @@ $(b)phase1/input.tar:
 	mkdir -p $(@D)/input
 	tar -C $(@D)/input -cf $@ .
 
+$(ubuntu_input_tar_o)gateway_phase2.tar: $(b)phase2/input.tar | $(ubuntu_input_tar_o)
+	@rm -f $@
+	ln -s $(shell realpath --relative-to=$(dir $@) $<) $@
+
+$(ubuntu_install_script_o)gateway_phase2.sh: $(d)phase2/install.sh | $(ubuntu_install_script_o)
+	@rm -f $@
+	ln -s $(shell realpath --relative-to=$(dir $@) $<) $@
+
 inputd_ := $(b)phase2/input/
 
 $(b)phase2/input.tar: $(addprefix $(inputd_), dhcpd.conf isc-dhcp-server netplan.yaml)
@@ -54,6 +62,9 @@ $(o)gateway.yaml: $(d)local.yaml.tpl $(config_deps) | $(o)
 	$(call confsed,$<,$@.tmp)
 	$(yq) eval-all 'select(fileIndex == 0) * select(fileIndex == 1) | explode(.) ' $@.tmp $(config_yaml) > $@
 	rm $@.tmp
+
+.PHONY: yaml
+yaml: $(o)gateway.yaml
 
 $(b)gateway.sed: $(o)gateway.yaml | $(b)
 	$(call yaml2sed,$<,$@)

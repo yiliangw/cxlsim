@@ -40,6 +40,14 @@ $(b)compute%/phase1/input.tar:
 	mkdir -p $(@D)/input
 	tar -C $(@D)/input -cf $@ .
 
+$(ubuntu_input_tar_o)compute%_phase2.tar: $(b)compute%/phase2/input.tar | $(ubuntu_input_tar_o)
+	@rm -f $@
+	ln -s $(shell realpath --relative-to=$(dir $@) $<) $@
+
+$(ubuntu_install_script_o)compute%_phase2.sh: $(d)phase2/install.sh | $(ubuntu_install_script_o)
+	@rm -f $@
+	ln -s $(shell realpath --relative-to=$(dir $@) $<) $@
+
 $(b)compute1/phase2/input.tar: $(addprefix $(b)compute1/phase2/input/, \
 	$(ubuntu_phase2_common_input) \
 	$(addprefix prepare/, run.sh chrony.conf nova.sh nova.conf nova-compute.conf neutron.sh neutron/neutron.conf neutron/openvswitch_agent.ini)) | $(b)compute1/phase2/

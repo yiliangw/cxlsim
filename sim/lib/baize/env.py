@@ -25,4 +25,10 @@ class ProjEnv(object):
   def get_ubuntu_disk(self, disk_name):
     return os.path.join(self.images_dir, f'ubuntu/disks/{disk_name}/disk.qcow2')
 
+  def get_ubuntu_input_tar(self, disk_name):
+    return os.path.join(self.images_dir, f'ubuntu/input_tars/{disk_name}.tar')
+  
+  def get_ubuntu_install_script(self, disk_name):
+    return os.path.join(self.images_dir, f'ubuntu/install_scripts/{disk_name}.sh')
+  
 projenv = ProjEnv()

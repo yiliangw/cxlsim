@@ -42,6 +42,14 @@ $(b)phase1/input.tar:
 
 inputd_ := $(b)phase2/input/
 
+$(ubuntu_input_tar_o)controller_phase2.tar: $(b)phase2/input.tar | $(ubuntu_input_tar_o)
+	@rm -f $@
+	ln -s $(shell realpath --relative-to=$(dir $@) $<) $@
+
+$(ubuntu_install_script_o)controller_phase2.sh: $(d)phase2/install.sh | $(ubuntu_install_script_o)
+	@rm -f $@
+	ln -s $(shell realpath --relative-to=$(dir $@) $<) $@
+
 $(b)phase2/input.tar: $(addprefix $(inputd_), \
 	$(ubuntu_phase2_common_input) \
 	$(addprefix prepare/, run.sh chrony.conf mysql/99-openstack.cnf memcached.conf etcd keystone.sh keystone.conf \

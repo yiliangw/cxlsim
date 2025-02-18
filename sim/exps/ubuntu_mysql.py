@@ -46,18 +46,51 @@ class UbuntuHostConfig(OpenstackNodeConfig):
     self.initrd_path = projenv.ubuntu_initrd_path
 
 
-class GatewayApp(AppConfig):
+class UbuntuAppConfig(AppConfig):
+
+  def __init__(self):
+    self.input_tar_path = None
+    self.install_script_path = None
+
+  def config_files(self, env) -> tp.Dict[str, tp.IO]:
+    files = {}
+    if self.input_tar_path is not None:
+      files['input.tar'] = open(self.input_tar_path, 'rb')
+    if self.install_script_path is not None:
+      files['install.sh'] = open(self.install_script_path, 'rb')
+    return files
+
+  def prepare_pre_cp(self) -> tp.List[str]:
+    cmds = []
+    if self.input_tar_path is not None:
+      cmd = 'bash /tmp/guest/install.sh'
+      if self.input_tar_path is not None:
+        cmd = 'INPUT_TAR=/tmp/guest/input.tar ' + cmd
+      cmds.append(cmd)
+    return cmds
+
+
+class GatewayApp(UbuntuAppConfig):
+
+  def __init__(self):
+    super().__init__()
+    self.input_tar_path = projenv.get_ubuntu_input_tar('gateway_phase2')
+    self.install_script_path = projenv.get_ubuntu_install_script(
+        'gateway_phase2')
 
   def prepare_pre_cp(self) -> tp.List[str]:
     """Commands to run to prepare this application before checkpointing."""
+    cmds = super().prepare_pre_cp()
     if CONFIG.ssh_control:
-      return [
+      cmds += [
           'while true; do sleep 30; done'
       ]
-    return [
-        f'while [ ! -f /root/.prepare.done ]; do sleep 10; done',
-        'sleep 3',
-    ]
+    else:
+      cmds += [
+          f'while [ ! -f /root/.prepare.done ]; do sleep 10; done',
+          'sleep 3',
+      ]
+    return cmds
 
   def run_cmds(self, node: NodeConfig) -> tp.List[str]:
     return [
@@ -65,23 +98,32 @@ class GatewayApp(AppConfig):
     ]
 
 
-class ControllerApp(AppConfig):
+class ControllerApp(UbuntuAppConfig):
+
+  def __init__(self):
+    super().__init__()
+    self.input_tar_path = projenv.get_ubuntu_input_tar('controller_phase2')
+    self.install_script_path = projenv.get_ubuntu_install_script(
+        'controller_phase2')
 
   def prepare_pre_cp(self) -> tp.List[str]:
     """Commands to run to prepare this application before checkpointing."""
+    cmds = super().prepare_pre_cp()
     if CONFIG.ssh_control:
-      return [
+      cmds += [
           'while true; do sleep 30; done'
       ]
-    return [
-        # ensure connection from both side can be setup
-        "while ! ssh compute1 'while ! ssh controller uptime; do sleep 3; done'; do sleep 3; done",
-        f'while ! ssh {gateway_management_ip} "while ! ssh {controller_management_ip}; do sleep 3; done"; do sleep 3; done',
-        "bash /root/prepare/run.sh",
-        "ssh compute1 'touch /root/.prepare.done'",
-        "ssh gateway 'touch /root/.prepare.done'",
-        "sleep 3",
-    ]
+    else:
+      cmds += [
+          # ensure connection from both side can be setup
+          "while ! ssh compute1 'while ! ssh controller uptime; do sleep 3; done'; do sleep 3; done",
+          f'while ! ssh {gateway_management_ip} "while ! ssh {controller_management_ip}; do sleep 3; done"; do sleep 3; done',
+          "bash /root/prepare/run.sh",
+          "ssh compute1 'touch /root/.prepare.done'",
+          "ssh gateway 'touch /root/.prepare.done'",
+          "sleep 3",
+      ]
+    return cmds
 
   def run_cmds(self, node: NodeConfig) -> tp.List[str]:
     """Commands to run for this application."""
@@ -90,18 +132,27 @@ class ControllerApp(AppConfig):
     ]
 
 
-class ComputeApp(AppConfig):
+class Compute1App(UbuntuAppConfig):
+
+  def __init__(self):
+    super().__init__()
+    self.input_tar_path = projenv.get_ubuntu_input_tar('compute1_phase2')
+    self.install_script_path = projenv.get_ubuntu_install_script(
+        'compute1_phase2')
 
   def prepare_pre_cp(self) -> tp.List[str]:
     """Commands to run to prepare this application before checkpointing."""
+    cmds = super().prepare_pre_cp()
     if CONFIG.ssh_control:
-      return [
+      cmds += [
           'while true; do sleep 30; done'
       ]
-    return [
-        f'while [ ! -f /root/.prepare.done ]; do sleep 10; done',
-        'sleep 3',
-    ]
+    else:
+      cmds += [
+          f'while [ ! -f /root/.prepare.done ]; do sleep 10; done',
+          'sleep 3',
+      ]
+    return cmds
 
   def run_cmds(self, node: NodeConfig) -> tp.List[str]:
     """Commands to run for this application."""
@@ -115,8 +166,9 @@ e.checkpoint = CONFIG.cp  # use checkpoint and restore to speed up simulation
 
 # create the gateway
 gateway_config = UbuntuHostConfig()
-gateway_config.disk_image_path = projenv.get_ubuntu_disk('gateway')
-gateway_config.raw_disk_image_path = projenv.get_ubuntu_raw_disk('gateway')
+gateway_config.disk_image_path = projenv.get_ubuntu_disk('gateway_phase1')
+gateway_config.raw_disk_image_path = projenv.get_ubuntu_raw_disk(
+    'gateway_phase1')
 gateway_config.cores = CONFIG.hosts.gateway.cores
 gateway_config.memory = CONFIG.hosts.gateway.memory
 gateway_config.pre_cp_tc_ifaces = ['eth0', 'eth1']
@@ -148,9 +200,9 @@ if not CONFIG.net_direct:
 # create the controller node
 controller_config = UbuntuHostConfig()
 controller_config.disk_image_path = projenv.get_ubuntu_disk(
-    'controller')
+    'controller_phase1')
 controller_config.raw_disk_image_path = projenv.get_ubuntu_raw_disk(
-    'controller')
+    'controller_phase1')
 controller_config.cores = CONFIG.hosts.controller.cores
 controller_config.memory = CONFIG.hosts.controller.memory
 controller_config.pre_cp_tc_ifaces = ['eth0', 'eth1']
@@ -181,8 +233,9 @@ if not CONFIG.net_direct:
 
 # # create compute node
 compute1_config = UbuntuHostConfig()
-compute1_config.disk_image_path = projenv.get_ubuntu_disk('compute1')
-compute1_config.raw_disk_image_path = projenv.get_ubuntu_raw_disk('compute1')
+compute1_config.disk_image_path = projenv.get_ubuntu_disk('compute1_phase1')
+compute1_config.raw_disk_image_path = projenv.get_ubuntu_raw_disk(
+    'compute1_phase1')
 compute1_config.cores = CONFIG.hosts.compute1.cores
 compute1_config.memory = CONFIG.hosts.compute1.memory
 compute1_config.pre_cp_tc_ifaces = ['eth0', 'eth1']
@@ -191,7 +244,7 @@ if CONFIG.net_direct:
       'eth0': CONFIG.hosts.compute1.management_mac,
       'eth1': CONFIG.hosts.compute1.provider_mac,
   }
-compute1_config.app = ComputeApp()
+compute1_config.app = Compute1App()
 compute1 = HostSimCls(compute1_config)
 compute1.name = 'compute1'
 compute1.wait = False

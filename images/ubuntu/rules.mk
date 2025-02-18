@@ -3,9 +3,11 @@ UBUNTU_SECONDARY_DISK_SZ := 250G
 # Disk images output directory
 ubuntu_img_o := $(o)
 ubuntu_dimg_o := $(o)disks/
+ubuntu_input_tar_o := $(o)input_tars/
+ubuntu_install_script_o := $(o)install_scripts/
 ubuntu_dimgs :=
 
-.PRECIOUS: $(ubuntu_dimg_o)%
+.PRECIOUS: $(ubuntu_dimg_o)% $(ubuntu_input_tar_o)%
 
 $(eval $(call include_rules,$(d)base/rules.mk))
 $(eval $(call include_rules,$(d)hosts/rules.mk))
@@ -56,7 +58,7 @@ qemu-ubuntu-base: $(o)tmpdisks/base/disk.qcow2 $(ubuntu_vmlinux) $(ubuntu_initrd
 .PHONY: qemu-ubuntu-% qemu-ubuntu-bridge-%
 
 qemu-ubuntu-bridge-controller: $(o)tmpdisks/controller/disk.qcow2 $(host_config_deps) $(ubuntu_vmlinux) $(ubuntu_initrd)
-	sudo -E $(qemu) -machine q35,accel=kvm -cpu host -smp 4 -m 16G \
+	sudo -E $(qemu) -machine q35,accel=kvm -cpu Skylake-Server -smp 8 -m 16G \
 	-kernel $(ubuntu_vmlinux) \
 	-append "$(ubuntu_kernel_cmdline)" \
 	-initrd $(ubuntu_initrd) \
@@ -69,7 +71,7 @@ qemu-ubuntu-bridge-controller: $(o)tmpdisks/controller/disk.qcow2 $(host_config_
 	-display none -serial mon:stdio
 
 qemu-ubuntu-bridge-compute1: $(o)tmpdisks/compute1/disk.qcow2 $(host_config_deps) $(ubuntu_vmlinux) $(ubuntu_initrd)
-	sudo -E $(qemu) -machine q35,accel=kvm -cpu host -smp 4 -m 16G \
+	sudo -E $(qemu) -machine q35,accel=kvm -cpu Skylake-Server -smp 8 -m 16G \
 	-kernel $(ubuntu_vmlinux) \
 	-append "$(ubuntu_kernel_cmdline)" \
 	-initrd $(ubuntu_initrd) \
@@ -82,7 +84,7 @@ qemu-ubuntu-bridge-compute1: $(o)tmpdisks/compute1/disk.qcow2 $(host_config_deps
 	-display none -serial mon:stdio
 
 qemu-ubuntu-bridge-%: $(o)tmpdisks/%/disk.qcow2 $(host_config_deps) $(ubuntu_vmlinux) $(ubuntu_initrd)
-	sudo -E $(qemu) -machine q35,accel=kvm -cpu host -smp 4 -m 16G \
+	sudo -E $(qemu) -machine q35,accel=kvm -cpu Skylake-Server -smp 8 -m 16G \
 	-kernel $(ubuntu_vmlinux) \
 	-append "$(ubuntu_kernel_cmdline)" \
 	-initrd $(ubuntu_initrd) \

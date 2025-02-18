@@ -16,7 +16,7 @@ simbricks-build: $(d)gem5_kvm.patch $(simbricks_dir) $(simbricks_dir)sims/extern
 simbricks-clean:
 	$(MAKE) -C $(simbricks_dir) clean-all
 
-$(o)%.log: $(d)exps/%.py $(simbricks_run_script) $(sim_lib_files) $(config_yaml)
+$(o)%.log: $(d)exps/%.py $(simbricks_run_script) $(sim_lib_files) $(config_yaml) | $(o)
 	python $(simbricks_run_script) $< $(SIMBRICKS_OPTIONS) 2>&1 | tee $@
 
 .PHONY: run-simple-ping
@@ -25,7 +25,11 @@ run-simple-ping: $(o)simple_ping.log
 .PHONY: run-ubuntu-mysql
 run-ubuntu-mysql: $(o)ubuntu_mysql.log
 
-$(o)ubuntu_mysql.log: $(d)exps/ubuntu_mysql.yaml $(ubuntu_dimg_o)gateway/disk.qcow2 $(ubuntu_dimg_o)gateway/disk.raw $(ubuntu_dimg_o)controller/disk.qcow2 $(ubuntu_dimg_o)controller/disk.raw $(ubuntu_dimg_o)compute1/disk.qcow2 $(ubuntu_dimg_o)compute1/disk.raw $(ubuntu_vmlinux) $(ubuntu_initrd)
+$(o)ubuntu_mysql.log: $(d)exps/ubuntu_mysql.yaml \
+	$(ubuntu_dimg_o)gateway_phase1/disk.qcow2 $(ubuntu_dimg_o)gateway_phase1/disk.raw $(ubuntu_input_tar_o)gateway_phase2.tar $(ubuntu_install_script_o)gateway_phase2.sh \
+	$(ubuntu_dimg_o)controller_phase1/disk.qcow2 $(ubuntu_dimg_o)controller_phase1/disk.raw $(ubuntu_input_tar_o)controller_phase2.tar $(ubuntu_install_script_o)controller_phase2.sh \
+	$(ubuntu_dimg_o)compute1_phase1/disk.qcow2 $(ubuntu_dimg_o)compute1_phase1/disk.raw  $(ubuntu_input_tar_o)compute1_phase2.tar $(ubuntu_install_script_o)compute1_phase2.sh \
+	$(ubuntu_vmlinux) $(ubuntu_initrd)
 
 .PHONY: run-ubuntu-ssh
 run-ubuntu-ssh: $(o)ubuntu_ssh.log

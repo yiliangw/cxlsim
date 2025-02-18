@@ -6,8 +6,6 @@ instances_dimg_all := mysql_server mysql_client
 instances_dimg_all := $(addprefix $(instances_dimg_o),$(instances_dimg_all))
 instances_dimg_all := $(addsuffix /disk.qcow2,$(instances_dimg_all))
 
-$(info instance_dimgs: $(instances_dimg_all))
-
 .PHONY: instances-dimg-all
 instances-dimg-all: $(instances_dimg_all)
 
