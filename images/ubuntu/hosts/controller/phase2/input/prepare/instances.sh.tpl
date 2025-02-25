@@ -61,9 +61,8 @@ openstack server create --flavor mysql.server --image mysql.server \
 
 sleep 30
 
-while ! ping -c 1 ${mysql_server_ip}; do
+while ! sshpass -p${password} ssh -MNf ${user}@${mysql_server_ip}; do
     ping -c 1 compute1
-    openstack server list
     openstack server show mysql.server
     sleep 30
 done
@@ -74,10 +73,9 @@ openstack server create --flavor mysql.client --image mysql.client \
 
 sleep 30
 
-while ! ping -c 1 ${mysql_client_ip}; do
+while ! sshpass -p${password} ssh -MNf ${user}@${mysql_client_ip}; do
     ping -c 1 compute1
-    openstack server list
-    openstack server show mysql.client
+    openstack server show mysql.clientc
     sleep 30
 done
 

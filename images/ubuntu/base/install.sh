@@ -50,6 +50,7 @@ sudo systemctl enable simbricks-guestinit
 sudo cp m5 /sbin/m5
 sudo chmod +x /sbin/m5
 
+mkdir -p ~/.ssh/controlmasters/
 cp ssh/* ~/.ssh
 chmod 600 ~/.ssh/id_rsa
 cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
