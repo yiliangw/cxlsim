@@ -9,6 +9,10 @@ After building the images, you can access the environment either by working with
 
 Prerequisites:
 
+- x86 linux machine with at least 32 CPU cores, 32G memory and 350G free disk space.
+
+- KVM is available.
+
 - `git`, `make` and `docker` (with docker compose plugin) have been installed on the system.
 
 - sudo is enabled for the current user.
@@ -28,7 +32,7 @@ Steps:
 
 3. Configure the image's user information in `.devcontainer/rules.mk`. By default, the created user will have the same user ID and group ID as the current user on the host. This avoids any conflicts in the file system. 
 
-4. Build the image for the dev container:
+4. Build the docker image for the dev container:
     ```bash
     make devcontainer
     ```
@@ -39,7 +43,7 @@ Steps:
 
 The following steps should be executed inside the container.
 
-6. Build Simbricks in the container:
+6. Build SimBricks:
     ```bash
     make simbricks-build
     ```
