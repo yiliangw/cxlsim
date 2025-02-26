@@ -75,7 +75,7 @@ sleep 30
 
 while ! sshpass -p${password} ssh -MNf ${user}@${mysql_client_ip}; do
     ping -c 1 compute1
-    openstack server show mysql.clientc
+    openstack server show mysql.client
     sleep 30
 done
 

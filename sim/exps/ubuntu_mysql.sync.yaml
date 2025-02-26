@@ -1,7 +1,7 @@
-sync: false
+sync: true
 pci_latency: 1000 # ns
 eth_latency: 1000 # ns
-cp: false
+cp: true
 host_sim: 'gem5'
 net_direct: true
 nic_sim: 'e1000'
