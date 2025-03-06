@@ -79,4 +79,6 @@ while ! sshpass -p${password} ssh -MNf ${user}@${mysql_client_ip}; do
     sleep 30
 done
 
+sshpass -p${password} ssh ${user}@${mysql_client_ip} 'bash ~/input/prepare.sh'
+
 popd

@@ -15,11 +15,11 @@ $(instances_dimg_o)mysql_client/disk.qcow2: $(d)install.sh $(b)input.tar $(insta
 	-var "user_password=$(call conffget,openstack,.instances.user.password)" \
 	$(base_hcl)
 
-$(b)input.tar: $(b)input/run.sh 
+$(b)input.tar: $(b)input/run.sh $(b)input/prepare.sh 
 	tar -C $(@D)/input -cf $@ .
 
 INPUT_TAR_ALL += $(b)input.tar
 
-$(b)input/run.sh: $(d)input/run.sh.tpl $(config_deps)
+$(b)input/%.sh: $(d)input/%.sh.tpl $(config_deps)
 	mkdir -p $(@D)
 	$(call confsed,$<,$@)

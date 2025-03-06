@@ -3,10 +3,9 @@
 set -xe
 
 sysbench oltp_read_write \
-  --threads=1 \
-  --time=2 \
+  --table-size=100 \
   --mysql-host={{ .openstack.instances.mysql.server.ip }} \
   --mysql-db=testdb \
   --mysql-user=testuser \
   --mysql-password=testpass \
-  run
+  prepare
