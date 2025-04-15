@@ -1,11 +1,11 @@
-$(instances_dimg_o)mysql_client/disk.qcow2: $(d)install.sh $(b)input.tar $(instances_seed_image) $(packer) $(base_hcl) $(openstack_config_deps)
+$(instances_dimg_o)mysql_client/disk.raw: $(d)install.sh $(b)input.tar $(instances_seed_image) $(packer) $(base_hcl) $(openstack_config_deps)
 	rm -rf $(@D)
 	PACKER_CACHE_DIR=$(packer_cache_dir) \
 	$(packer_run) build \
 	-var "iso_url=$(call conffget,openstack,.instances.mysql.client.iso_url)" \
 	-var "iso_cksum_url=$(call conffget,openstack,.instances.mysql.client.iso_cksum_url)" \
 	-var "disk_size=$(call conffget,openstack,.instances.mysql.client.disk)G" \
-	-var "disk_compression=true" \
+	-var "disk_format=raw" \
 	-var "out_dir=$(@D)" \
 	-var "out_name=$(@F)" \
 	-var "seedimg=$(instances_seed_image)" \

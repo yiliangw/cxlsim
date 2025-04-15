@@ -79,7 +79,8 @@ RUN wget https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_lin
 
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y \
-		tmux
+		tmux \
+		bear
 
 # Add non-root user.
 ARG USER_NAME=baize

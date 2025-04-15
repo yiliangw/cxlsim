@@ -17,9 +17,9 @@ sudo netplan apply
 sudo mv ovs-iface-up.service /etc/systemd/system
 sudo systemctl enable ovs-iface-up
 
-cp -r env/ ~
-cp -r prepare/ ~
-cp -r run/ ~
+mv env/ ~
+mv prepare/ ~
+mv run/ ~
 
 popd
 rm -rf /tmp/input

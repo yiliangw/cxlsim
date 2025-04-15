@@ -25,7 +25,7 @@ variable "disk_compression" {
   default = false
 }
 
-variable "format" {
+variable "disk_format" {
   type    = string
   default = "qcow2"
 }
@@ -63,7 +63,7 @@ source "qemu" "disk" {
   communicator     = "ssh"
   cpus             = "${var.cpus}"
   memory           = "${var.memory}"
-  format           = "${var.format}"
+  format           = "${var.disk_format}"
   disk_size        = "${var.disk_size}"
   disk_image       = true
   disk_compression = "${var.disk_compression}"
@@ -75,7 +75,7 @@ source "qemu" "disk" {
     ["-machine", "q35,accel=kvm:tcg"],
     ["-enable-kvm"],
     ["-cpu", "host"],
-    ["-drive", "file=${var.out_dir}/${var.out_name},if=ide,index=0,cache=writeback,discard=ignore,media=disk,format=qcow2"],
+    ["-drive", "file=${var.out_dir}/${var.out_name},if=ide,index=0,cache=writeback,discard=ignore,media=disk,format=${var.disk_format}"],
     ["-drive", "file=${var.input_tar_src},if=ide,index=1,media=disk,format=raw"],
     ["-drive", "file=${var.seedimg},if=ide,index=2,media=disk,driver=raw"],
     ["-boot", "c"]

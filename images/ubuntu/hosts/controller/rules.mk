@@ -1,5 +1,5 @@
 ubuntu_dimgs += $(ubuntu_dimg_o)controller/disk.qcow2
-$(ubuntu_dimg_o)controller/disk.qcow2: $(ubuntu_dimg_o)controller_phase2/disk.qcow2 | $(ubuntu_dimg_o)controller/
+$(ubuntu_dimg_o)controller/disk.qcow2: $(ubuntu_dimg_o)controller_phase1/disk.qcow2 | $(ubuntu_dimg_o)controller/
 	@rm -f $@
 	ln -s $(shell realpath --relative-to=$(dir $@) $<) $@
 
@@ -56,7 +56,7 @@ $(b)phase2/input.tar: $(addprefix $(inputd_), \
 	glance.sh glance-api.conf placement.sh placement.conf nova.sh nova.conf neutron.sh neutron/neutron.conf \
 	neutron/ml2_conf.ini neutron/openvswitch_agent.ini neutron/dhcp_agent.ini neutron/l3_agent.ini neutron/metadata_agent.ini instances.sh) \
 	$(addprefix run/, run.sh))
-	tar -C $(@D)/input -cf $@ .
+	tar -cf $@ -C $(@D)/input .
 
 INPUT_TAR_ALL += $(b)phase2/input.tar
 
@@ -73,20 +73,11 @@ $(inputd_)%: $(b)controller.sed $(d)../common/phase2/input/%.tpl
 	@mkdir -p $(@D)
 	sed -f $(word 1, $^) $(word 2, $^) > $@
 
-# Disk images
-ubuntu_openstack_images := cirros.qcow2 mysql_server.qcow2 mysql_client.qcow2
+# instance disk images
+$(b)phase2/input.tar: $(inputd_)prepare/instance_dimgs.tar
 
-p2_imgs_input_prefix := $(b)phase2/input/prepare/images/
-
-$(b)phase2/input.tar: $(addprefix $(p2_imgs_input_prefix), $(ubuntu_openstack_images))
-
-$(p2_imgs_input_prefix)cirros.qcow2: | $(p2_imgs_input_prefix)
-	wget -O $@ http://download.cirros-cloud.net/0.4.0/cirros-0.4.0-x86_64-disk.img 
-
-$(p2_imgs_input_prefix)mysql_server.qcow2: $(instances_dimg_o)mysql_server/disk.qcow2 | $(p2_imgs_input_prefix)
-	cp $< $@
-
-$(p2_imgs_input_prefix)mysql_client.qcow2: $(instances_dimg_o)mysql_client/disk.qcow2 | $(p2_imgs_input_prefix)
+$(inputd_)prepare/instance_dimgs.tar: $(ubuntu_instance_dimgs_tar)
+	@mkdir -p $(@D)
 	cp $< $@
 
 $(o)controller.yaml: $(d)controller.yaml.tpl $(config_deps) | $(o)

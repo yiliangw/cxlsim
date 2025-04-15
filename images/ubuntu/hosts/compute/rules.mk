@@ -1,4 +1,4 @@
-$(ubuntu_dimg_o)compute%/disk.qcow2: $(ubuntu_dimg_o)compute%_phase2/disk.qcow2 | $(ubuntu_dimg_o)compute%/
+$(ubuntu_dimg_o)compute%/disk.qcow2: $(ubuntu_dimg_o)compute%_phase1/disk.qcow2 | $(ubuntu_dimg_o)compute%/
 	@rm -f $@
 	ln -s $(shell realpath --relative-to=$(dir $@) $<) $@
 
@@ -77,3 +77,10 @@ $(inputd_)%: $(b)compute1.sed $(d)phase2/input/%.tpl
 $(inputd_)%: $(b)compute1.sed $(d)../common/phase2/input/%.tpl
 	@mkdir -p $(@D)
 	sed -f $(word 1, $^) $(word 2, $^) > $@
+
+# instance disk images
+$(b)phase2/input.tar: $(inputd_)prepare/instance_dimgs.tar
+
+$(inputd_)prepare/instance_dimgs.tar: $(ubuntu_instance_dimgs_tar)
+	@mkdir -p $(@D)
+	cp $< $@

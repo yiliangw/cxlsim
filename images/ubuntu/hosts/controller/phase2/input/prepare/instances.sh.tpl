@@ -24,12 +24,6 @@ openstack flavor create --vcpus 1 --ram 64 --disk 1 m1.nano
 openstack flavor create --vcpus {{ .openstack.instances.mysql.server.vcpus }} --ram {{ .openstack.instances.mysql.server.ram }} --disk {{ .openstack.instances.mysql.server.disk }} mysql.server 
 openstack flavor create --vcpus {{ .openstack.instances.mysql.client.vcpus }} --ram {{ .openstack.instances.mysql.client.ram }} --disk {{ .openstack.instances.mysql.client.disk }} mysql.client
 
-# Create images
-glance image-create --name "mysql.server" --file images/mysql_server.qcow2 --disk-format qcow2 \
-  --container-format bare --visibility public
-glance image-create --name "mysql.client" --file images/mysql_client.qcow2 --disk-format qcow2 \
-  --container-format bare --visibility public
-
 . ~/env/user_openrc
 
 # Self-service network

@@ -8,7 +8,7 @@ fi
 case $1 in
   setup)
     sudo ip link del ${BRIDGE_IF} >/dev/null 2>&1 || true
-    sudo ip link add name ${BRIDGE_IF} type bridge && sleep 3
+    sudo ip link add name ${BRIDGE_IF} type bridge
     sudo ip addr add ${BRIDGE_IF_CIDR} brd + dev ${BRIDGE_IF}
     sudo ip link set ${BRIDGE_IF} up
     sudo mkdir -p /etc/qemu/

@@ -24,4 +24,7 @@ $(b)meta-data:
 	mkdir -p $(@D)
 	tee $@ < /dev/null > /dev/null
 
+$(instances_dimg_o)cirros/disk.qcow2: | $(instances_dimg_o)cirros/
+	wget -O $@ http://download.cirros-cloud.net/0.4.0/cirros-0.4.0-x86_64-disk.img 
+
 $(eval $(call include_rules,$(d)mysql/rules.mk))
