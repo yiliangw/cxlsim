@@ -33,20 +33,7 @@ sudo su -s /bin/sh -c "glance-manage db_sync" glance
 
 sudo systemctl restart glance-api
 
-sleep 3
-
-mkdir -p images/
-tar xf instance_dimgs.tar -C images/
-
-# Create images
-glance image-create --name "cirros" --file images/cirros.raw --disk-format raw \
-  --container-format bare --visibility public
-glance image-create --name "mysql.server" --file images/mysql_server.raw --disk-format raw \
-  --container-format bare --visibility public
-glance image-create --name "mysql.client" --file images/mysql_client.raw --disk-format raw \
-  --container-format bare --visibility public
-
-# Ensure there is cirros in the output, otherwise fail
-glance image-list | grep -q cirros
+# # Ensure there is cirros in the output, otherwise fail
+# glance image-list | grep -q cirros
 
 popd

@@ -48,10 +48,20 @@ $(ubuntu_install_script_o)compute%_phase2.sh: $(d)phase2/install.sh | $(ubuntu_i
 	@rm -f $@
 	ln -s $(shell realpath --relative-to=$(dir $@) $<) $@
 
-$(b)compute1/phase2/input.tar: $(addprefix $(b)compute1/phase2/input/, \
+
+inputd_ := $(b)compute1/phase2/input/
+
+$(b)compute1/phase2/input.tar: $(addprefix $(inputd_), \
 	$(ubuntu_phase2_common_input) \
 	$(addprefix prepare/, run.sh chrony.conf nova.sh nova.conf nova-compute.conf neutron.sh neutron/neutron.conf neutron/openvswitch_agent.ini)) | $(b)compute1/phase2/
 	tar -C $(@D)/input -cf $@ .
+
+# instance disk images
+# $(b)compute1/phase2/input.tar: $(inputd_)prepare/instance_dimgs.tar
+
+# $(inputd_)prepare/instance_dimgs.tar: $(ubuntu_instance_dimgs_tar)
+# 	@mkdir -p $(@D)
+# 	cp $< $@
 
 INPUT_TAR_ALL += $(b)compute1/phase2/input.tar
 
@@ -63,7 +73,6 @@ $(o)compute%.yaml: $(d)compute%.yaml.tpl $(config_deps) | $(o)
 $(b)compute%.sed: $(o)compute%.yaml | $(b)
 	$(call yaml2sed,$<,$@)
 
-inputd_ := $(b)compute1/phase2/input/
 
 $(inputd_)%: $(d)phase2/input/%
 	@mkdir -p $(@D)
@@ -77,10 +86,3 @@ $(inputd_)%: $(b)compute1.sed $(d)phase2/input/%.tpl
 $(inputd_)%: $(b)compute1.sed $(d)../common/phase2/input/%.tpl
 	@mkdir -p $(@D)
 	sed -f $(word 1, $^) $(word 2, $^) > $@
-
-# instance disk images
-$(b)phase2/input.tar: $(inputd_)prepare/instance_dimgs.tar
-
-$(inputd_)prepare/instance_dimgs.tar: $(ubuntu_instance_dimgs_tar)
-	@mkdir -p $(@D)
-	cp $< $@
