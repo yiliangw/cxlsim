@@ -8,6 +8,7 @@ sim_common_deps := $(sim_lib_files) $(simbricks_run_script) $(config_yaml)
 
 .PHONY: simbricks-build
 simbricks-build: $(d)gem5_kvm.patch $(simbricks_dir) $(simbricks_dir)sims/external/gem5 $(simbricks_dir)sims/external/qemu
+	cd $(simbricks_dir) && git submodule update --init sims/external/gem5 && git submodule update --init sims/external/qemu
 	patch -d $(simbricks_dir)sims/external/gem5 -p1 -N -r/dev/null < $< || true
 	make -C $(simbricks_dir) -j`nproc` all sims/external/qemu/ready sims/external/gem5/ready
 	make -C $(simbricks_dir) -j`nproc` build-images-min convert-images-raw

@@ -13,7 +13,7 @@ $(d)verilator.patch: $(project_root)sim/simbricks/docker/verilator.patch
 	cp $< $@
 
 $(project_root)sim/simbricks/docker/verilator.patch:
-	git submodule update --init --recursive sim/simbricks
+	git submodule update --init sim/simbricks
 
 docker_compose_yml := $(d)docker-compose.yml
 
