@@ -57,7 +57,7 @@ cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
 
 cp -r linux/ ~/linux
 cd ~/linux
-cp /boot/config-* .config
+cp /boot/config-$(uname -r) .config
 ./scripts/config --set-str SYSTEM_TRUSTED_KEYS ""
 ./scripts/config --disable MODULE_SIG_CERT
 ./scripts/config --disable SYSTEM_REVOCATION_KEYS
@@ -71,7 +71,7 @@ cp /boot/config-* .config
 ./scripts/config --disable CONFIG_IEEE802154
 
 # find all WLAN_VENDOR_* and disable them
-for i in $(./scripts/config --list | grep WLAN_VENDOR); do
+for i in $(grep '^CONFIG_.*WLAN_VENDOR.*=y' .config | awk -F= '{print $1}'); do
     ./scripts/config --disable $i
 done
 
@@ -83,7 +83,12 @@ done
 ./scripts/config --disable CONFIG_INPUT_TOUCHSCREEN
 ./scripts/config --disable CONFIG_INPUT_MISC
 
-yes "" | make oldconfig
+./scripts/config --disable CONFIG_I2C_NVIDIA_GPU
+./scripts/config --disable CONFIG_DRM_AMDGPU
+./scripts/config --disable CONFIG_DRM_VIRTIO_GPU
+
+./scripts/config --refresh
+# yes "" | make oldconfig
 
 make -j$(nproc)
 sudo make modules_install
