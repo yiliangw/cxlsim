@@ -1,25 +1,13 @@
 ubuntu_dimgs += $(ubuntu_dimg_o)controller/disk.qcow2
-$(ubuntu_dimg_o)controller/disk.qcow2: $(ubuntu_dimg_o)controller_phase1/disk.qcow2 | $(ubuntu_dimg_o)controller/
-	@rm -f $@
-	ln -s $(shell realpath --relative-to=$(dir $@) $<) $@
 
-$(ubuntu_dimg_o)controller_phase2/disk.qcow2: $(ubuntu_dimg_o)controller_phase1/disk.qcow2 $(b)phase2/input.tar $(d)phase2/install.sh $(base_hcl) $(packer) $(config_deps) | $(ubuntu_dimg_o)
-	rm -rf $(@D)
-	$(packer_run) build \
-	-var "base_img=$(word 1, $^)" \
-	-var "disk_size=$(call conffget,platform,.ubuntu.disks.controller.size)" \
-	-var "cpus=$(IMAGE_BUILD_CPUS)" \
-	-var "memory=$(IMAGE_BUILD_MEMORY)" \
-	-var "out_dir=$(@D)" \
-	-var "out_name=$(@F)" \
-	-var "user_name=root" \
-	-var "user_password=$(call conffget,platform,.ubuntu.root.password)" \
-	-var "input_tar_src=$(word 2,$^)" \
-	-var "install_script=$(word 3,$^)" \
-	$(extend_hcl)
+.PRECIOUS: $(ubuntu_dimg_o)controller/disk.qcow2
+$(ubuntu_dimg_o)controller/disk.qcow2: $(ubuntu_dimg_o)controller_base/disk.qcow2 | $(ubuntu_dimg_o)controller/
+	@rm -rf $@
+	@echo --relative-to=$(dir $@) $< 
+	$(QEMU_IMG) create -f qcow2 -F qcow2 -b $(realpath --relative-to=$(@D) $<) $@
 
-.PRECIOUS: $(ubuntu_dimg_o)controller_phase1/disk.qcow2
-$(ubuntu_dimg_o)controller_phase1/disk.qcow2: $(ubuntu_base_dimg) $(b)phase1/input.tar $(d)phase1/install.sh $(extend_hcl) $(packer) $(platform_config_deps) | $(ubuntu_dimg_o)
+.PRECIOUS: $(ubuntu_dimg_o)controller_base/disk.qcow2
+$(ubuntu_dimg_o)controller_base/disk.qcow2: $(ubuntu_base_dimg) $(b)phase1/input.tar $(d)phase1/install.sh $(extend_hcl) $(packer) $(platform_config_deps) | $(ubuntu_dimg_o)
 	rm -rf $(@D)
 	$(packer_run) build \
 	-var "base_img=$<" \
@@ -52,10 +40,9 @@ $(ubuntu_install_script_o)controller_phase2.sh: $(d)phase2/install.sh | $(ubuntu
 
 $(b)phase2/input.tar: $(addprefix $(inputd_), \
 	$(ubuntu_phase2_common_input) \
-	$(addprefix prepare/, run.sh chrony.conf mysql/99-openstack.cnf memcached.conf etcd keystone.sh keystone.conf \
+	$(addprefix setup/, run.sh chrony.conf mysql/99-openstack.cnf memcached.conf etcd keystone.sh keystone.conf \
 	glance.sh glance-api.conf placement.sh placement.conf nova.sh nova.conf neutron.sh neutron/neutron.conf \
-	neutron/ml2_conf.ini neutron/openvswitch_agent.ini neutron/dhcp_agent.ini neutron/l3_agent.ini neutron/metadata_agent.ini instances.sh) \
-	$(addprefix run/, run.sh))
+	neutron/ml2_conf.ini neutron/openvswitch_agent.ini neutron/dhcp_agent.ini neutron/l3_agent.ini neutron/metadata_agent.ini misc.sh))
 	tar -cf $@ -C $(@D)/input .
 
 INPUT_TAR_ALL += $(b)phase2/input.tar
@@ -72,13 +59,6 @@ $(inputd_)%: $(b)controller.sed $(d)phase2/input/%.tpl
 $(inputd_)%: $(b)controller.sed $(d)../common/phase2/input/%.tpl
 	@mkdir -p $(@D)
 	sed -f $(word 1, $^) $(word 2, $^) > $@
-
-# instance disk images
-$(b)phase2/input.tar: $(inputd_)prepare/instance_dimgs.tar
-
-$(inputd_)prepare/instance_dimgs.tar: $(ubuntu_instance_dimgs_tar)
-	@mkdir -p $(@D)
-	cp $< $@
 
 $(o)controller.yaml: $(d)controller.yaml.tpl $(config_deps) | $(o)
 	$(call confsed,$<,$@.tmp)

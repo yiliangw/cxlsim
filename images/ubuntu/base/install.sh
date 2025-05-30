@@ -34,7 +34,8 @@ sudo -E apt-get install -y \
 sudo -E apt-get install -y \
   qemu-guest-agent \
   iproute2 \
-  iperf3
+  iperf3 \
+  stress-ng
 
 mkdir /tmp/input
 pushd /tmp/input
@@ -74,6 +75,15 @@ cp /boot/config-$(uname -r) .config
 for i in $(grep '^CONFIG_.*WLAN_VENDOR.*=y' .config | awk -F= '{print $1}'); do
     ./scripts/config --disable $i
 done
+
+./scripts/config \
+  --disable CONFIG_COMEDI \
+  --disable CONFIG_I2C \
+  --disable CONFIG_SPI \
+  --disable CONFIG_GPIO \
+  --disable CONFIG_HID \
+  --disable CONFIG_INPUT_JOYSTICK \
+  --disable CONFIG_INPUT_TABLET \
 
 ./scripts/config --disable CONFIG_SOUND
 ./scripts/config --disable CONFIG_INFINIBAND

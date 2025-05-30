@@ -1,25 +1,5 @@
-$(ubuntu_dimg_o)compute%/disk.qcow2: $(ubuntu_dimg_o)compute%_phase1/disk.qcow2 | $(ubuntu_dimg_o)compute%/
-	@rm -f $@
-	ln -s $(shell realpath --relative-to=$(dir $@) $<) $@
-
-.PRECIOUS: $(ubuntu_dimg_o)compute%_phase2/disk.qcow2
-$(ubuntu_dimg_o)compute%_phase2/disk.qcow2: $(ubuntu_dimg_o)compute%_phase1/disk.qcow2 $(b)compute%/phase2/input.tar $(d)phase2/install.sh $(extend_hcl) $(packer) $(platform_config_deps) | $(ubuntu_dimg_o)
-	rm -rf $(@D)
-	$(packer_run) build \
-	-var "base_img=$(word 1,$^)" \
-	-var "disk_size=$(call conffget,platform,.ubuntu.disks.compute.size)" \
-	-var "cpus=$(IMAGE_BUILD_CPUS)" \
-	-var "memory=$(IMAGE_BUILD_MEMORY)" \
-	-var "out_dir=$(@D)" \
-	-var "out_name=$(@F)" \
-	-var "user_name=root" \
-	-var "user_password=$(call conffget,platform,.ubuntu.root.password)" \
-	-var "input_tar_src=$(word 2,$^)" \
-	-var "install_script=$(word 3,$^)" \
-	$(extend_hcl)
-
-.PRECIOUS: $(ubuntu_dimg_o)compute%_phase1/disk.qcow2
-$(ubuntu_dimg_o)compute%_phase1/disk.qcow2: $(ubuntu_base_dimg) $(b)compute%/phase1/input.tar $(d)phase1/install.sh $(extend_hcl) $(packer) | $(ubuntu_dimg_o)
+.PRECIOUS: $(ubuntu_dimg_o)compute_base/disk.qcow2
+$(ubuntu_dimg_o)compute_base/disk.qcow2: $(ubuntu_base_dimg) $(b)base/phase1/input.tar $(d)phase1/install.sh $(extend_hcl) $(packer) | $(ubuntu_dimg_o)
 	rm -rf $(@D)
 	$(packer_run) build \
 	-var "base_img=$(word 1,$^)" \
@@ -35,52 +15,54 @@ $(ubuntu_dimg_o)compute%_phase1/disk.qcow2: $(ubuntu_base_dimg) $(b)compute%/pha
 	-var "use_backing_file=false" \
 	$(extend_hcl)
 
-$(b)compute%/phase1/input.tar:
+$(b)base/phase1/input.tar:
 	rm -rf $(@D)/input
 	mkdir -p $(@D)/input
 	tar -C $(@D)/input -cf $@ .
 
-$(ubuntu_input_tar_o)compute%_phase2.tar: $(b)compute%/phase2/input.tar | $(ubuntu_input_tar_o)
-	@rm -f $@
-	ln -s $(shell realpath --relative-to=$(dir $@) $<) $@
 
-$(ubuntu_install_script_o)compute%_phase2.sh: $(d)phase2/install.sh | $(ubuntu_install_script_o)
-	@rm -f $@
-	ln -s $(shell realpath --relative-to=$(dir $@) $<) $@
+define compute_node_rules
 
-$(b)compute1/phase2/input.tar: $(addprefix $(b)compute1/phase2/input/, \
+$(eval _n := $(1))
+$(eval _inputd := $(b)$(1)/phase2/input/)
+
+.PRECIOUS: $(ubuntu_dimg_o)$(_n)/disk.qcow2
+$(ubuntu_dimg_o)$(_n)/disk.qcow2: $(ubuntu_dimg_o)$(_n)_base/disk.qcow2 | $(ubuntu_dimg_o)$(_n)/
+	@rm -rf $$@
+	$(QEMU_IMG) create -f qcow2 -F qcow2 -b $$(shell realpath --relative-to=$$(@D) $$<) $$@
+
+.PRECIOUS: $(ubuntu_dimg_o)$(_n)_base/disk.qcow2
+$(ubuntu_dimg_o)$(_n)_base/disk.qcow2: $(ubuntu_dimg_o)compute_base/disk.qcow2 | $(ubuntu_dimg_o)$(_n)_base/
+	@rm -f $$@
+	$(QEMU_IMG) create -f qcow2 -F qcow2 -b $$(shell realpath --relative-to=$$(@D) $$<) $$@ 
+
+$(o)$(_n).yaml: $(d)$(_n).yaml.tpl $(config_deps) | $(o)
+	$$(call confsed,$$<,$$@.tmp)
+	$(yq) eval-all 'select(fileIndex == 0) * select(fileIndex == 1) | explode(.) ' $$@.tmp $(config_yaml) > $$@
+	rm $$@.tmp
+$(b)$(_n).sed: $(o)$(_n).yaml | $(b)
+	$$(call yaml2sed,$$<,$$@)
+
+$(ubuntu_install_script_o)$(_n)_phase2.sh: $(d)phase2/install.sh | $(ubuntu_install_script_o)
+	cp $(d)phase2/install.sh $$@
+
+$(ubuntu_input_tar_o)$(_n)_phase2.tar: $$(addprefix $(_inputd), \
 	$(ubuntu_phase2_common_input) \
-	$(addprefix prepare/, run.sh chrony.conf nova.sh nova.conf nova-compute.conf neutron.sh neutron/neutron.conf neutron/openvswitch_agent.ini)) | $(b)compute1/phase2/
-	tar -C $(@D)/input -cf $@ .
+	$$(addprefix setup/, run.sh chrony.conf nova.sh nova.conf nova-compute.conf neutron.sh neutron/neutron.conf neutron/openvswitch_agent.ini)) | $(b)$(1)/phase2/
+	tar -C $(_inputd) -cf $$@ .
+$(_inputd)%: $(d)phase2/input/%
+	@mkdir -p $$(@D)
+	cp $$< $$@
+$(_inputd)%: $(d)../common/phase2/input/%
+	@mkdir -p $$(@D)
+	cp $$< $$@
+$(_inputd)%: $(b)$(1).sed $(d)phase2/input/%.tpl
+	@mkdir -p $$(@D)
+	sed -f $$(word 1, $$^) $$(word 2, $$^) > $$@
+$(_inputd)%: $(b)$(1).sed $(d)../common/phase2/input/%.tpl
+	@mkdir -p $$(@D)
+	sed -f $$(word 1, $$^) $$(word 2, $$^) > $$@
+endef
 
-INPUT_TAR_ALL += $(b)compute1/phase2/input.tar
-
-$(o)compute%.yaml: $(d)compute%.yaml.tpl $(config_deps) | $(o)
-	$(call confsed,$<,$@.tmp)
-	$(yq) eval-all 'select(fileIndex == 0) * select(fileIndex == 1) | explode(.) ' $@.tmp $(config_yaml) > $@
-	rm $@.tmp
-
-$(b)compute%.sed: $(o)compute%.yaml | $(b)
-	$(call yaml2sed,$<,$@)
-
-inputd_ := $(b)compute1/phase2/input/
-
-$(inputd_)%: $(d)phase2/input/%
-	@mkdir -p $(@D)
-	cp $< $@
-$(inputd_)%: $(d)../common/phase2/input/%
-	@mkdir -p $(@D)
-	cp $< $@
-$(inputd_)%: $(b)compute1.sed $(d)phase2/input/%.tpl
-	@mkdir -p $(@D)
-	sed -f $(word 1, $^) $(word 2, $^) > $@
-$(inputd_)%: $(b)compute1.sed $(d)../common/phase2/input/%.tpl
-	@mkdir -p $(@D)
-	sed -f $(word 1, $^) $(word 2, $^) > $@
-
-# instance disk images
-$(b)phase2/input.tar: $(inputd_)prepare/instance_dimgs.tar
-
-$(inputd_)prepare/instance_dimgs.tar: $(ubuntu_instance_dimgs_tar)
-	@mkdir -p $(@D)
-	cp $< $@
+$(eval $(call compute_node_rules,compute1))
+$(eval $(call compute_node_rules,compute2))

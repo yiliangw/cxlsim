@@ -5,8 +5,9 @@ IMAGE_BUILD_CPUS := $(shell echo $$((`nproc` / 4 * 3)))
 IMAGE_BUILD_MEMORY := $(shell echo $$((`free -m | awk '/^Mem:/ {print $$4}'` / 4 * 3)))
 
 qemu := qemu-system-x86_64
-qemu_img := qemu-img
 virt_copy_out := virt-copy-out
+
+QEMU_IMG := qemu-img
 
 packer := $(b)packer
 packer_run := PACKER_PLUGIN_PATH=$(b).packer_plugins/ PACKER_CACHE_DIR=$(b).packer_cache/ $(packer)
@@ -16,7 +17,7 @@ base_hcl := $(d)base.pkr.hcl
 extend_hcl := $(d)extend.pkr.hcl
 
 %disk.raw: %disk.qcow2
-	$(qemu_img) convert -f qcow2 -O raw $< $@ 
+	$(QEMU_IMG) convert -f qcow2 -O raw $< $@ 
 
 $(packer): $(packer_zip)
 	mkdir -p $(@D)

@@ -41,13 +41,15 @@ bash nova.sh
 bash neutron.sh
 
 # Prepare other hosts
-while ! ssh compute1 uptime; do
-    sleep 1
+for h in compute1 compute2; do
+    while ! ssh $h uptime; do
+        sleep 1
+    done
+    ssh $h 'cd && bash setup/run.sh'
 done
-ssh compute1 'cd && bash prepare/run.sh'
 
-# Launch instances
-bash instances.sh
+# Miscellaneous setup
+bash misc.sh
 
 touch .done
 

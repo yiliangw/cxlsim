@@ -51,4 +51,4 @@ $(b)input/ssh/%: $(d)input/ssh/% | $(b)input/ssh/
 
 $(ubuntu_base_secondary_img):
 	@mkdir -p $(@D)
-	$(qemu_img) create -f qcow2 $@ $(UBUNTU_SECONDARY_DISK_SZ)
+	$(QEMU_IMG) create -f qcow2 $@ $(UBUNTU_SECONDARY_DISK_SZ)

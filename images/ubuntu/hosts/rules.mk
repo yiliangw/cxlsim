@@ -1,6 +1,6 @@
 $(o)%/secondary/disk.qcow2: $(ubuntu_base_secondary_img)
 	mkdir -p $(@D)
-	$(qemu_img) create -f qcow2 -F qcow2 -b $(shell realpath --relative-to=$(dir $@) $<) $@
+	$(QEMU_IMG) create -f qcow2 -F qcow2 -b $(shell realpath --relative-to=$(dir $@) $<) $@
 
 # Disk images
 ubuntu_instance_dimgs := cirros mysql_server mysql_client
