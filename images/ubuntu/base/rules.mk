@@ -1,6 +1,6 @@
-ubuntu_base_dimg := $(ubuntu_dimg_o)base/disk.qcow2
+ubuntu_base_dimg := $(b)disk/disk.qcow2
 ubuntu_dimgs += $(ubuntu_base_dimg)
-$(ubuntu_base_dimg): $(b)input.tar $(o)seed.raw $(d)install.sh $(platform_config_deps) $(base_hcl) $(packer)
+$(ubuntu_base_dimg): $(b)input.tar $(b)seed.raw $(d)install.sh $(platform_config_deps) $(base_hcl) $(packer)
 	rm -rf $(@D)
 	$(packer_run) build \
 	-var "disk_size=$(call conffget,platform,.ubuntu.disks.base.size)" \
@@ -17,7 +17,7 @@ $(ubuntu_base_dimg): $(b)input.tar $(o)seed.raw $(d)install.sh $(platform_config
 	-var "install_script=$(word 3,$^)" \
 	$(base_hcl)
 
-$(o)seed.raw: $(b)user-data $(b)meta-data | $(o)
+$(b)seed.raw: $(b)user-data $(b)meta-data | $(o)
 	cloud-localds $@ $^
 
 $(b)user-data: $(d)user-data.tpl $(platform_config_deps) | $(b)

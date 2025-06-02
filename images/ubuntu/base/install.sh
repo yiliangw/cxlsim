@@ -76,26 +76,28 @@ for i in $(grep '^CONFIG_.*WLAN_VENDOR.*=y' .config | awk -F= '{print $1}'); do
     ./scripts/config --disable $i
 done
 
+./scripts/config --disable CONFIG_INFINIBAND
+
 ./scripts/config \
   --disable CONFIG_COMEDI \
+  --disable CONFIG_IIO \
   --disable CONFIG_I2C \
   --disable CONFIG_SPI \
   --disable CONFIG_GPIO \
   --disable CONFIG_HID \
+  --disable CONFIG_MEDIA_SUPPORT \
+  --disable CONFIG_SOUND \
+  --disable CONFIG_INPUT_MOUSE \
   --disable CONFIG_INPUT_JOYSTICK \
   --disable CONFIG_INPUT_TABLET \
+  --disable CONFIG_INPUT_TOUCHSCREEN \
+  --disable CONFIG_INPUT_MISC \
 
-./scripts/config --disable CONFIG_SOUND
-./scripts/config --disable CONFIG_INFINIBAND
-./scripts/config --disable CONFIG_INPUT_MOUSE
-./scripts/config --disable CONFIG_INPUT_JOYSTICK
-./scripts/config --disable CONFIG_INPUT_TABLET
-./scripts/config --disable CONFIG_INPUT_TOUCHSCREEN
-./scripts/config --disable CONFIG_INPUT_MISC
-
-./scripts/config --disable CONFIG_I2C_NVIDIA_GPU
-./scripts/config --disable CONFIG_DRM_AMDGPU
-./scripts/config --disable CONFIG_DRM_VIRTIO_GPU
+./scripts/config \
+  --disable CONFIG_DRM \
+  --disable CONFIG_DRM_AMDGPU \
+  --disable CONFIG_DRM_VIRTIO_GPU \
+  --disable CONFIG_FB
 
 ./scripts/config --refresh
 # yes "" | make oldconfig

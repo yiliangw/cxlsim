@@ -1,13 +1,7 @@
 ubuntu_dimgs += $(ubuntu_dimg_o)controller/disk.qcow2
 
-.PRECIOUS: $(ubuntu_dimg_o)controller/disk.qcow2
-$(ubuntu_dimg_o)controller/disk.qcow2: $(ubuntu_dimg_o)controller_base/disk.qcow2 | $(ubuntu_dimg_o)controller/
-	@rm -rf $@
-	@echo --relative-to=$(dir $@) $< 
-	$(QEMU_IMG) create -f qcow2 -F qcow2 -b $(realpath --relative-to=$(@D) $<) $@
-
-.PRECIOUS: $(ubuntu_dimg_o)controller_base/disk.qcow2
-$(ubuntu_dimg_o)controller_base/disk.qcow2: $(ubuntu_base_dimg) $(b)phase1/input.tar $(d)phase1/install.sh $(extend_hcl) $(packer) $(platform_config_deps) | $(ubuntu_dimg_o)
+.PRECIOUS: $(ubuntu_dimg_o)base/controller/disk.qcow2
+$(ubuntu_dimg_o)base/controller/disk.qcow2: $(ubuntu_base_dimg) $(b)phase1/input.tar $(d)phase1/install.sh $(extend_hcl) $(packer) $(platform_config_deps) | $(ubuntu_dimg_o)base/
 	rm -rf $(@D)
 	$(packer_run) build \
 	-var "base_img=$<" \
@@ -30,22 +24,16 @@ $(b)phase1/input.tar:
 
 inputd_ := $(b)phase2/input/
 
-$(ubuntu_input_tar_o)controller_phase2.tar: $(b)phase2/input.tar | $(ubuntu_input_tar_o)
-	@rm -f $@
-	ln -s $(shell realpath --relative-to=$(dir $@) $<) $@
-
 $(ubuntu_install_script_o)controller_phase2.sh: $(d)phase2/install.sh | $(ubuntu_install_script_o)
-	@rm -f $@
-	ln -s $(shell realpath --relative-to=$(dir $@) $<) $@
+	cp $< $@
 
-$(b)phase2/input.tar: $(addprefix $(inputd_), \
+$(ubuntu_input_tar_o)controller_phase2.tar: $(inputd_) $(addprefix $(inputd_), \
 	$(ubuntu_phase2_common_input) \
 	$(addprefix setup/, run.sh chrony.conf mysql/99-openstack.cnf memcached.conf etcd keystone.sh keystone.conf \
 	glance.sh glance-api.conf placement.sh placement.conf nova.sh nova.conf neutron.sh neutron/neutron.conf \
 	neutron/ml2_conf.ini neutron/openvswitch_agent.ini neutron/dhcp_agent.ini neutron/l3_agent.ini neutron/metadata_agent.ini misc.sh))
-	tar -cf $@ -C $(@D)/input .
-
-INPUT_TAR_ALL += $(b)phase2/input.tar
+	@mkdir -p $(@D)
+	tar -cf $@ -C $< .
 
 $(inputd_)%: $(d)phase2/input/%
 	@mkdir -p $(@D)

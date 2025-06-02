@@ -40,14 +40,6 @@ bash placement.sh
 bash nova.sh
 bash neutron.sh
 
-# Prepare other hosts
-for h in compute1 compute2; do
-    while ! ssh $h uptime; do
-        sleep 1
-    done
-    ssh $h 'cd && bash setup/run.sh'
-done
-
 # Miscellaneous setup
 bash misc.sh
 

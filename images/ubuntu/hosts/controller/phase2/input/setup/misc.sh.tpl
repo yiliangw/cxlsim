@@ -14,12 +14,19 @@ openstack subnet create --network provider \
   --dns-nameserver {{ .openstack.network.provider.nameserver }} --gateway {{ .openstack.network.provider.gateway }} \
   --subnet-range {{ .openstack.network.provider.subnet }}/{{ .openstack.network.provider.mask_len }} provider
 
+# According to https://bugs.launchpad.net/nova/+bug/2051907, neutron policy for create_port_binding requires `service` role
+openstack role add --project service --user neutron service
+
+# Add the use as admin of the project
+openstack role add --project {{ .openstack.id.nonadmin.project }} --user {{ .openstack.id.nonadmin.user.name }} admin
+
 . ~/env/user_openrc
 
 # Add the keypair
-openstack keypair create --public-key ~/.ssh/id_rsa.pub default
+openstack keypair create --public-key ~/.ssh/id_rsa.pub mykey
 
 # Create security groups
-openstack security group rule create default --proto any --ingress
+openstack security group create mygroup
+openstack security group rule create mygroup --proto any --ingress
 
 popd

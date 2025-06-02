@@ -5413,7 +5413,8 @@ password = {{ .openstack.id.nova_pass }}
 #
 # The  address where the SPICE server running on the instances should listen.
 # For more information, refer to the documentation. (string value)
-#server_listen = 127.0.0.1
+# This allows live migration
+server_listen = 0.0.0.0
 
 #
 # The address used by ``nova-spicehtml5proxy`` client to connect to instance

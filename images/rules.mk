@@ -31,7 +31,7 @@ $(packer_zip):
 
 linux_dir := $(project_root)apps/linux/
 
-$(eval $(call include_rules,$(d)instances/rules.mk))
+$(eval $(call include_rules,$(d)workload/rules.mk))
 $(eval $(call include_rules,$(d)ubuntu/rules.mk))
 
 DIMG_ALL := $(addprefix $(o)ubuntu/disks/, controller/disk.qcow2 compute1/disk.qcow2)

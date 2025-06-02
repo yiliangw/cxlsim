@@ -1,11 +1,13 @@
 # output directory 
 O ?= out/
+B ?= build/
 
 O := $(if $(filter %/,$(O)),$(O),$(O)/)
+B := $(if $(filter %/,$(B)),$(B),$(B)/)
 
 d := ./
 o := $(O)
-b := $(o).build/
+b := $(B)
 project_root := $(d)
 
 current_makefile := $(firstword $(MAKEFILE_LIST))
@@ -15,7 +17,7 @@ define update_current_makefile
 	$(eval current_makefile := $(firstword $(makefile_stack)))
 	$(eval d := $(dir $(current_makefile)))
 	$(eval o := $(subst /.,,$(O)$(d)))
-	$(eval b := $(o).build/)
+	$(eval b := $(subst /.,,$(B)$(d)))
 endef
 
 ALL_ALL :=
@@ -38,7 +40,7 @@ help:
 simbricks_dir := $(d)sim/simbricks/
 
 $(eval $(call include_rules,$(d).devcontainer/rules.mk))
-$(eval $(call include_rules,$(d)config/rules.mk))
+$(eval $(call include_rules,$(d)configs/rules.mk))
 $(eval $(call include_rules,$(d)utils/rules.mk))
 $(eval $(call include_rules,$(d)images/rules.mk))
 $(eval $(call include_rules,$(d)sim/rules.mk))

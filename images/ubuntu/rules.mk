@@ -58,49 +58,42 @@ qemu-ubuntu-base: $(o)tmpdisks/base/disk.qcow2 $(ubuntu_vmlinux) $(ubuntu_initrd
 	-boot c \
 	-display none -serial mon:stdio
 
-.PHONY: qemu-ubuntu-bridge-%
-qemu-ubuntu-bridge-controller: $(ubuntu_dimg_o)controller/disk.qcow2 $(ubuntu_input_tar_o)controller_phase2.tar $(ubuntu_install_script_o)controller_phase2.sh $(host_config_deps) $(ubuntu_vmlinux) $(ubuntu_initrd)
-	sudo -E $(qemu) -machine q35,accel=kvm -cpu Skylake-Server -smp 8 -m 16G \
+
+define ubuntu_setup_rule
+$(eval node := $(1))
+$(eval management_mac := $(call conffget,host,.qemu_mac_list[$(2)]))
+$(eval provider_mac := $(call conffget,host,.qemu_mac_list[$(3)]))
+
+.PRECIOUS: $(ubuntu_dimg_o)setup/$(node)/disk.qcow2
+$(ubuntu_dimg_o)setup/$(node)/disk.qcow2: $(ubuntu_dimg_o)base/$(node)/disk.qcow2 $(ubuntu_input_tar_o)$(node)_phase2.tar $(ubuntu_install_script_o)$(node)_phase2.sh
+	@rm -rf $$@ && mkdir -p $$(@D)
+	$(QEMU_IMG) create -f qcow2 -F qcow2 -b $$(realpath --relative-to=$$(@D) $$<) $$@
+
+ubuntu_setup_clean += $(ubuntu_dimg_o)setup/$(node)/disk.qcow2
+
+.PHONY: qemu-ubuntu-setup-$(node)
+qemu-ubuntu-setup-$(node): $(ubuntu_dimg_o)setup/$(node)/disk.qcow2 $(ubuntu_input_tar_o)$(node)_phase2.tar $(ubuntu_install_script_o)$(node)_phase2.sh $(host_config_deps) $(ubuntu_vmlinux) $(ubuntu_initrd)
+	sudo -E $(qemu) -machine q35,accel=kvm -cpu host -smp 8 -m 16G \
 	-kernel $(ubuntu_vmlinux) \
 	-append "$(ubuntu_kernel_cmdline)" \
 	-initrd $(ubuntu_initrd) \
-	-drive file=$(word 1, $^),media=disk,format=qcow2,if=ide,index=0 \
-	-drive file=${word 2, $^},media=disk,format=raw,if=ide,index=1 \
-	-drive file=${word 3, $^},media=disk,format=raw,if=ide,index=2 \
-	-netdev bridge,id=net-management,br=$(call conffget,host,.bridges.management.name) \
-	-device virtio-net-pci,netdev=net-management,mac=$(call conffget,host,.qemu_mac_list[0]) \
-	-netdev bridge,id=net-provider,br=$(call conffget,host,.bridges.provider.name) \
-	-device virtio-net-pci,netdev=net-provider,mac=$(call conffget,host,.qemu_mac_list[1]) \
+	-drive file=$$(word 1, $$^),media=disk,format=qcow2,if=ide,index=0 \
+	-drive file=$${word 2, $$^},media=disk,format=raw,if=ide,index=1 \
+	-drive file=$${word 3, $$^},media=disk,format=raw,if=ide,index=2 \
+	-netdev bridge,id=net-management,br=$$(call conffget,host,.bridges.management.name) \
+	-device virtio-net-pci,netdev=net-management,mac=$(management_mac) \
+	-netdev bridge,id=net-provider,br=$$(call conffget,host,.bridges.provider.name) \
+	-device virtio-net-pci,netdev=net-provider,mac=$(provider_mac) \
 	-boot c \
 	-display none -serial mon:stdio
+endef
 
-qemu-ubuntu-bridge-compute1: $(ubuntu_dimg_o)compute1/disk.qcow2 $(ubuntu_input_tar_o)compute1_phase2.tar $(ubuntu_install_script_o)compute1_phase2.sh $(host_config_deps) $(ubuntu_vmlinux) $(ubuntu_initrd)
-	sudo -E $(qemu) -machine q35,accel=kvm -cpu Skylake-Server -smp 8 -m 16G \
-	-kernel $(ubuntu_vmlinux) \
-	-append "$(ubuntu_kernel_cmdline)" \
-	-initrd $(ubuntu_initrd) \
-	-drive file=$(word 1, $^),media=disk,format=qcow2,if=ide,index=0 \
-	-drive file=${word 2, $^},media=disk,format=raw,if=ide,index=1 \
-	-drive file=${word 3, $^},media=disk,format=raw,if=ide,index=2 \
-	-netdev bridge,id=net-management,br=$(call conffget,host,.bridges.management.name) \
-	-device virtio-net-pci,netdev=net-management,mac=$(call conffget,host,.qemu_mac_list[2]) \
-	-netdev bridge,id=net-provider,br=$(call conffget,host,.bridges.provider.name) \
-	-device virtio-net-pci,netdev=net-provider,mac=$(call conffget,host,.qemu_mac_list[3]) \
-	-boot c \
-	-display none -serial mon:stdio
+$(eval $(call ubuntu_setup_rule,controller,0,1))
+$(eval $(call ubuntu_setup_rule,compute1,2,3))
+$(eval $(call ubuntu_setup_rule,compute2,4,5))
 
-qemu-ubuntu-bridge-compute2: $(ubuntu_dimg_o)compute2/disk.qcow2 $(ubuntu_input_tar_o)compute2_phase2.tar $(ubuntu_install_script_o)compute2_phase2.sh $(host_config_deps) $(ubuntu_vmlinux) $(ubuntu_initrd)
-	sudo -E $(qemu) -machine q35,accel=kvm -cpu Skylake-Server -smp 8 -m 16G \
-	-kernel $(ubuntu_vmlinux) \
-	-append "$(ubuntu_kernel_cmdline)" \
-	-initrd $(ubuntu_initrd) \
-	-drive file=$(word 1, $^),media=disk,format=qcow2,if=ide,index=0 \
-	-drive file=${word 2, $^},media=disk,format=raw,if=ide,index=1 \
-	-drive file=${word 3, $^},media=disk,format=raw,if=ide,index=2 \
-	-netdev bridge,id=net-management,br=$(call conffget,host,.bridges.management.name) \
-	-device virtio-net-pci,netdev=net-management,mac=$(call conffget,host,.qemu_mac_list[4]) \
-	-netdev bridge,id=net-provider,br=$(call conffget,host,.bridges.provider.name) \
-	-device virtio-net-pci,netdev=net-provider,mac=$(call conffget,host,.qemu_mac_list[5]) \
-	-boot c \
-	-display none -serial mon:stdio
+$(eval $(call include_rules,$(d)apps/rules.mk))
 
+.PHONY: clean-ubuntu-setup
+clean-ubuntu-setup:
+	rm -rf $(ubuntu_setup_clean)

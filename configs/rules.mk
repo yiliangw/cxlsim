@@ -4,6 +4,7 @@ platform_config_deps := $(b)platform.sed $(d)platform.yaml
 openstack_config_deps :=  $(b)openstack.sed $(d)openstack.yaml
 misc_config_deps :=  $(b)misc.sed $(d)misc.yaml
 host_config_deps :=  $(b)host.sed $(d)host.yaml
+workload_config_deps := $(b)workload.sed $(d)workload.yaml
 
 config_yaml_all := $(d)misc.yaml $(d)platform.yaml $(d)openstack.yaml
 
@@ -33,11 +34,11 @@ config_b := $(b)
 
 # Get config value from a specified config file
 define conffget
-$(shell $(yq) 'explode(.) | .$(1)$(2)' $(config_d)$(1).yaml)
+$(shell $(yq) eval 'explode(.) | .$(1)$(2)' $(config_d)$(1).yaml)
 endef
 
 define confget
-$(shell $(yq) 'explode(.) | $(1)' $(config_yaml))
+$(shell $(yq) eval 'explode(.) | $(1)' $(config_yaml))
 endef
 
 # Get config value from a specified config file

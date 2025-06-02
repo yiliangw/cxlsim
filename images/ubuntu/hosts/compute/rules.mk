@@ -1,5 +1,5 @@
-.PRECIOUS: $(ubuntu_dimg_o)compute_base/disk.qcow2
-$(ubuntu_dimg_o)compute_base/disk.qcow2: $(ubuntu_base_dimg) $(b)base/phase1/input.tar $(d)phase1/install.sh $(extend_hcl) $(packer) | $(ubuntu_dimg_o)
+.PRECIOUS: $(b)base_disk/disk.qcow2
+$(b)base_disk/disk.qcow2: $(ubuntu_base_dimg) $(b)base/phase1/input.tar $(d)phase1/install.sh $(extend_hcl) $(packer) | $(ubuntu_dimg_o)
 	rm -rf $(@D)
 	$(packer_run) build \
 	-var "base_img=$(word 1,$^)" \
@@ -12,7 +12,7 @@ $(ubuntu_dimg_o)compute_base/disk.qcow2: $(ubuntu_base_dimg) $(b)base/phase1/inp
 	-var "user_password=$(call conffget,platform,.ubuntu.root.password)" \
 	-var "input_tar_src=$(word 2,$^)" \
 	-var "install_script=$(word 3,$^)" \
-	-var "use_backing_file=false" \
+	-var "use_backing_file=true" \
 	$(extend_hcl)
 
 $(b)base/phase1/input.tar:
@@ -26,15 +26,10 @@ define compute_node_rules
 $(eval _n := $(1))
 $(eval _inputd := $(b)$(1)/phase2/input/)
 
-.PRECIOUS: $(ubuntu_dimg_o)$(_n)/disk.qcow2
-$(ubuntu_dimg_o)$(_n)/disk.qcow2: $(ubuntu_dimg_o)$(_n)_base/disk.qcow2 | $(ubuntu_dimg_o)$(_n)/
-	@rm -rf $$@
-	$(QEMU_IMG) create -f qcow2 -F qcow2 -b $$(shell realpath --relative-to=$$(@D) $$<) $$@
-
-.PRECIOUS: $(ubuntu_dimg_o)$(_n)_base/disk.qcow2
-$(ubuntu_dimg_o)$(_n)_base/disk.qcow2: $(ubuntu_dimg_o)compute_base/disk.qcow2 | $(ubuntu_dimg_o)$(_n)_base/
+.PRECIOUS: $(ubuntu_dimg_o)base/$(_n)/disk.qcow2
+$(ubuntu_dimg_o)base/$(_n)/disk.qcow2: $(b)base_disk/disk.qcow2 | $(ubuntu_dimg_o)base/$(_n)/
 	@rm -f $$@
-	$(QEMU_IMG) create -f qcow2 -F qcow2 -b $$(shell realpath --relative-to=$$(@D) $$<) $$@ 
+	$(QEMU_IMG) convert -O qcow2 $$< $$@
 
 $(o)$(_n).yaml: $(d)$(_n).yaml.tpl $(config_deps) | $(o)
 	$$(call confsed,$$<,$$@.tmp)
