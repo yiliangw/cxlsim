@@ -13,7 +13,7 @@ sudo apt-get install -y \
 
 sysbench oltp_read_write \
   --table-size=100 \
-  --mysql-host=${MYSQL_SERVER_IP} \
+  --mysql-host=${SERVER_IP} \
   --mysql-db=testdb \
   --mysql-user=testuser \
   --mysql-password=testpass \

@@ -55,5 +55,5 @@ sleep 5
 openstack server create \
     --flavor client --image ubuntu --key-name mykey \
     --security-group mygroup --port client --user-data ${USER_DATA} \
-    --os-compute-api-version 2.74 --host compute2 \
+    --os-compute-api-version 2.74 --host compute1 \
     client

@@ -160,6 +160,10 @@ The following steps should be executed inside the container.
 
     According to the [thread](https://bugs.launchpad.net/nova/+bug/2051907), neutron policy for create_port_binding requires the role `service`.
     A quick workaround is to do `openstack role add --user neutron --project service service`.
+
+    It seems that if one compute node uses kvm while another uses qemu, then an instance can only be live migrated from kvm to qemu.
+    However, a cold migration would work for both directions.
+    Also, a cold migration should be confirmed with `openstack server migration confirm <server_name>`.
     
 
 ## Configuring Identities
