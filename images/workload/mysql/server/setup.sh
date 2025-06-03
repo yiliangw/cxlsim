@@ -2,13 +2,14 @@
 
 set -xe
 
-sudo apt-get update
-sudo apt-get install -y net-tools mysql-server
+export DEBIAN_FRONTEND=noninteractive
+apt-get update && apt-get install -f && apt-get install -y \
+    net-tools mysql-server
 
-sudo sed -i '/^bind-address/s/127.0.0.1/0.0.0.0/' /etc/mysql/mysql.conf.d/mysqld.cnf
-sudo systemctl restart mysql
+sed -i '/^bind-address/s/127.0.0.1/0.0.0.0/' /etc/mysql/mysql.conf.d/mysqld.cnf
+systemctl restart mysql
 
-cat<<EOF |sudo mysql -u root
+cat<<EOF | mysql -u root
 CREATE DATABASE testdb;
 CREATE USER 'testuser'@'%' IDENTIFIED BY 'testpass';
 GRANT ALL PRIVILEGES ON testdb.* TO 'testuser'@'%';
