@@ -9,14 +9,14 @@ host:
     - 52:54:00:11:11:06
   bridges:
     management:
-      name: baize-mana-br
+      name: br-cxlsim-mana
       ip: 10.10.10.1
       netmask_len: 24
     provider:
-      name: baize-prov-br
+      name: br-cxlsim-prov
       ip: 10.10.11.1
       netmask_len: 24
     selfservice:
-      name: baize-serv-br
+      name: br-cxlsim-serv
       ip: 10.10.12.1
       netmask_len: 24

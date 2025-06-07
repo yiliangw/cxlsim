@@ -59,6 +59,20 @@ qemu-ubuntu-base: $(o)tmpdisks/base/disk.qcow2 $(ubuntu_vmlinux) $(ubuntu_initrd
 	-display none -serial mon:stdio
 
 
+define ubuntu_disk_rules # $1: name, $2: disk (paths)
+.PHONY: ubuntu-$(1) clean-ubuntu-$(1)
+ubuntu-$(1): $(addprefix $(ubuntu_dimg_o),$(addsuffix /disk.qcow2,$(2)))
+clean-ubuntu-$(1):
+	rm -rf $(addprefix $(ubuntu_dimg_o),$(addsuffix /disk.qcow2,$(2)))
+endef
+
+define ubuntu_raw_disk_rules
+.PHONY: ubuntu-raw-$(1) clean-ubuntu-raw-$(1)
+ubuntu-raw-$(1): $(addprefix $(ubuntu_dimg_o),$(addsuffix /disk.raw,$(2)))
+clean-ubuntu-raw-$(1):
+	rm -rf $(addprefix $(ubuntu_dimg_o),$(addsuffix /disk.raw,$(2)))
+endef
+
 define ubuntu_setup_rule
 $(eval node := $(1))
 $(eval management_mac := $(call conffget,host,.qemu_mac_list[$(2)]))
@@ -69,10 +83,8 @@ $(ubuntu_dimg_o)setup/$(node)/disk.qcow2: $(ubuntu_dimg_o)base/$(node)/disk.qcow
 	@rm -rf $$@ && mkdir -p $$(@D)
 	$(QEMU_IMG) create -f qcow2 -F qcow2 -b $$(realpath --relative-to=$$(@D) $$<) $$@
 
-ubuntu_setup_clean += $(ubuntu_dimg_o)setup/$(node)/disk.qcow2
-
-.PHONY: qemu-ubuntu-setup-$(node)
-qemu-ubuntu-setup-$(node): $(ubuntu_dimg_o)setup/$(node)/disk.qcow2 $(ubuntu_input_tar_o)$(node)_phase2.tar $(ubuntu_install_script_o)$(node)_phase2.sh $(host_config_deps) $(ubuntu_vmlinux) $(ubuntu_initrd)
+.PHONY: qemu-ubuntu-setup/$(node)
+qemu-ubuntu-setup/$(node): $(ubuntu_dimg_o)setup/$(node)/disk.qcow2 $(ubuntu_input_tar_o)$(node)_phase2.tar $(ubuntu_install_script_o)$(node)_phase2.sh $(host_config_deps) $(ubuntu_vmlinux) $(ubuntu_initrd)
 	sudo -E $(qemu) -machine q35,accel=kvm -cpu host -smp 8 -m 16G \
 	-kernel $(ubuntu_vmlinux) \
 	-append "$(ubuntu_kernel_cmdline)" \
@@ -86,14 +98,12 @@ qemu-ubuntu-setup-$(node): $(ubuntu_dimg_o)setup/$(node)/disk.qcow2 $(ubuntu_inp
 	-device virtio-net-pci,netdev=net-provider,mac=$(provider_mac) \
 	-boot c \
 	-display none -serial mon:stdio
+	touch $$<
 endef
 
 $(eval $(call ubuntu_setup_rule,controller,0,1))
 $(eval $(call ubuntu_setup_rule,compute1,2,3))
 $(eval $(call ubuntu_setup_rule,compute2,4,5))
+$(eval $(call ubuntu_disk_rules,setup,setup/controller setup/compute1 setup/compute2))
 
 $(eval $(call include_rules,$(d)apps/rules.mk))
-
-.PHONY: clean-ubuntu-setup
-clean-ubuntu-setup:
-	rm -rf $(ubuntu_setup_clean)

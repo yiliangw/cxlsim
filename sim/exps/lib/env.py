@@ -11,7 +11,7 @@ class ProjEnv(object):
         os.path.dirname(__file__), '../../..'))
     self.make_outdir = os.path.join(self.repo_path, 'out')
     self.images_dir = os.path.join(self.make_outdir, 'images')
-    self.config_yaml_path = os.path.join(self.make_outdir, 'config/config.yaml')
+    self.config_yaml_path = os.path.join(self.make_outdir, 'configs/config.yaml')
 
     self.ubuntu_vmlinux_path = os.path.join(self.images_dir, 'ubuntu/vmlinux')
     self.ubuntu_initrd_path = os.path.join(self.images_dir, 'ubuntu/initrd.img')
@@ -25,10 +25,4 @@ class ProjEnv(object):
   def get_ubuntu_disk(self, disk_name):
     return os.path.join(self.images_dir, f'ubuntu/disks/{disk_name}/disk.qcow2')
 
-  def get_ubuntu_input_tar(self, disk_name):
-    return os.path.join(self.images_dir, f'ubuntu/input_tars/{disk_name}.tar')
-  
-  def get_ubuntu_install_script(self, disk_name):
-    return os.path.join(self.images_dir, f'ubuntu/install_scripts/{disk_name}.sh')
-  
 projenv = ProjEnv()

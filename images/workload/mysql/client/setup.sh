@@ -9,7 +9,8 @@ export DEBIAN_FRONTEND=noninteractive
 apt-get update && apt-get install -f && apt-get install -y \
   net-tools \
   sysbench \
-  mysql-client
+  mysql-client \
+  stress-ng
 
 # wait until the server's MySQL server is ready
 while ! mysqladmin ping -h ${SERVER_IP} -u testuser --password=testpass --silent; do

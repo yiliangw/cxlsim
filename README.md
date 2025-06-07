@@ -45,112 +45,54 @@ The following steps should be executed inside the container.
 
 6. Build SimBricks:
     ```bash
-    make simbricks-build
+    make build-simbricks
     ```
 
-7. Run the example experiment:
+7. Set up bridges and NAT:
     ```bash
-    make run-ubuntu-mysql
-    ```
-    This experiment builds up an OpenStack system with a controller, a compute node and a gateway.
-    After setting up, a MySQL server and a client will be launched as instances on the provider network and run some simple workload. 
-
-
-## Launching Instances
-
-1. Mount the 9p shared folder in controller node:
-    ```sh
-    mkdir -p /mnt/instances
-    mount -t 9p -o trans=virtio instances /mnt/instances
+    make setup-bridges
+    make setup-nat
     ```
 
-2. Initialize the credentials
-    ```sh
-    . env/admin_openrc
+8. Build OpenStack base images:
+    ```bash
+    make ubuntu-setup
     ```
 
-3. Create the provider network:
-    ```sh
-    openstack network create --share --external \
-        --provider-physical-network provider \
-        --provider-network-type flat provier
-    openstack subnet create --network provider \
-    --allocation-pool start=10.10.11.100,end=10.10.11.250 \
-    --dns-nameserver 8.8.8.8 --gateway 10.10.11.1 \
-    --subnet-range 10.10.11.0/24 provider
+9. Set up OpenStack base images:
+
+    For `<node>` in `controller`, `compute1`, and `compute2`, do the following things:
+
+    - Launch the node by running `make qemu-ubuntu-setup/<node>`.
+
+    - Login into the node with user `root` and password `root`.
+
+    - Setup the node by running `bash /dev/sdc && bash ~/setup/run.sh`. Other node can be set up only after 'controller` has been set up.
+
+    - Shutdown the nodes after all nodes have been set up.
+
+10. Set up MySQL workload base images:
+
+    - For `<node>` in `controller`, `compute1`, and `compute2`, launch the node by running `make qemu-ubuntu-mysql/base/<node>`.
+
+    - Login into `controller` and setup up the workload by running:
+    ```bash
+    mount -t 9p workload /mnt
+    bash /mnt/mysql/setup.sh
     ```
 
-4. Assign fixed IP address
-    ```sh
-    openstack port create --project myproject --network provider \
-        --fixed-ip ip-address=10.10.11.112 myport
+    - Shutdown the nodes after the setup is done.
+
+11. Run the MySQL workload experiment:
+    
+    ```bash
+    make run-exp-ubuntu_basic
     ```
     
 
-5. List avaialbe resources:
-    ```sh
-    openstack flavor list
-    openstack image list
-    openstack network list
-    openstack security group list
-    ```
+    This experiment builds up an OpenStack system with a controller node and two compute nodes.
 
-6. Create a flavor:
-    ```sh
-    # ram: MB   disk: GB
-    openstack flavor create --vcpus 1 --ram 64 --disk 1 m1.nano
-   
-    openstack flavor create --vcpus 2 --ram 4096 --disk 4 server
-    openstack flavor create --vcpus 1 --ram 4096 --disk 4 client
-    ```
 
-7. Add an image:
-    ```sh
-    glance image-create --name "cirros" \
-    --file /mnt/instances/disks/cirros/disk.qcow2 \
-    --disk-format qcow2 --container-format bare \
-    --visibility=public
-    glance image-list
-    ```
-    
-8. Add a public key:
-    ```sh
-    openstack keypair create --public-key ~/.ssh/id_rsa.pub mykey 
-    # Verify
-    openstack keypair list
-    ```
-
-9. Add a security group:
-    ```sh
-    openstack security group create mygroup
-    openstack security group rule create mygroup --proto any --ingress
-    # openstack security group rule create --proto tcp --dst-port default
-    # openstack security group rule create --proto icmp default
-    ```
-
-10. Launch a cirros instance (on a provider network `provider`):
-    ```sh
-    openstack server create --flavor m1.nano --image cirros \
-    --port myport --security-group mygroup \
-    --key-name mykey \
-    --user-data /mnt/instances/user-data \
-    --hint force_hosts=compute1 \
-    cirros
-    ```
-
-11. Shut down an instance gracefully and relaunch
-    ```sh
-    openstack server stop cirros
-    openstack server stop --wait cirros # Force stop
-    openstack server start cirros
-    
-    openstack server reboot --soft cirros
-    ```
-
-12. Check the console output of an instance:
-    ```sh
-    openstack console log show cirros
-    ```
 
 13. Migrate a VM to another compute node:
     ```sh
@@ -189,4 +131,41 @@ openstack role add --project myproject --user myuser admin
 
 # List the role of a user in a project
 openstack role assignment list --user myuser --project myproject --names
+```
+
+## Configuraing Swap Space
+
+```sh
+# Create and enable the swap file
+sudo fallocate -l 16G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+
+# Disable the swap file
+sudo swapoff /swapfile
+sudo rm /swapfile
+
+# Verify
+swapon --show
+free -h
+
+# Enable kernel memory overcommit
+echo 1 | sudo tee /proc/sys/vm/overcommit_memory
+echo 150 | sudo tee /proc/sys/vm/overcommit_ratio
+
+# Make the configuration persistent
+sudo bash -c 'cat <<EOF >> /etc/fstab
+/swapfile   none    swap    sw  0   0
+EOF'
+# Verify
+sudo findmnt --verify
+sudo swapon -a || sudo mount -a
+
+
+sudo bash -c 'cat <<EOF >> /etc/sysctl.conf
+vm.overcommit_memory = 1
+vm.overcommit_ratio = 150
+EOF'
+sudo sysctl -p
 ```

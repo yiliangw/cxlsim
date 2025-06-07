@@ -30,12 +30,13 @@ sudo -E apt-get install -y \
   bc \
   dwarves
 
-# Other packages
-sudo -E apt-get install -y \
-  qemu-guest-agent \
-  iproute2 \
-  iperf3 \
-  stress-ng
+sudo -E apt-get install -y qemu-guest-agent
+
+# # Other packages
+# sudo -E apt-get install -y \
+#   iproute2 \
+#   iperf3 \
+#   stress-ng
 
 mkdir /tmp/input
 pushd /tmp/input
@@ -63,13 +64,19 @@ cp /boot/config-$(uname -r) .config
 ./scripts/config --disable MODULE_SIG_CERT
 ./scripts/config --disable SYSTEM_REVOCATION_KEYS
 
-./scripts/config --disable CONFIG_WIRELESS
-./scripts/config --disable CONFIG_WLAN
-./scripts/config --disable CONFIG_CFG80211
-./scripts/config --disable CONFIG_MAC80211
-./scripts/config --disable CONFIG_IWLWIFI
-./scripts/config --disable CONFIG_BT
-./scripts/config --disable CONFIG_IEEE802154
+./scripts/config \
+  --disable CONFIG_WIRELESS   \
+  --disable CONFIG_WLAN       \
+  --disable CONFIG_CFG80211   \
+  --disable CONFIG_MAC80211   \
+  --disable CONFIG_IWLWIFI    \
+  --disable CONFIG_BT         \
+  --disable CONFIG_IEEE802154
+
+./scripts/config \
+  --disable CONFIG_NET_VENDOR_MELLANOX \
+  --disable CONFIG_MELLANOX_PLATFORM
+
 
 # find all WLAN_VENDOR_* and disable them
 for i in $(grep '^CONFIG_.*WLAN_VENDOR.*=y' .config | awk -F= '{print $1}'); do

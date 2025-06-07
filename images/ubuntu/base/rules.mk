@@ -26,13 +26,14 @@ $(b)user-data: $(d)user-data.tpl $(platform_config_deps) | $(b)
 $(b)meta-data: | $(b)
 	tee $@ < /dev/null > /dev/null
 
+.INTERMEDIATE: $(b)input.tar
 $(b)input.tar: $(addprefix $(b)input/, linux/README simbricks-guestinit.sh simbricks-guestinit.service m5 \
 	$(addprefix ssh/, id_rsa id_rsa.pub config)) | $(b)
 	tar -C $(@D)/input -cf $@ .
 
 $(b)input/linux/README: $(linux_dir)README | $(b)input/
 	rm -rf $(@D)
-	cp -r $(linux_dir) $(@D)
+	rsync -ar --exclude='.git/' $(linux_dir) $(@D)
 	$(MAKE) -C $(@D) mrproper
 
 $(b)input/simbricks-guestinit.sh: $(d)input/simbricks-guestinit.sh | $(b)input/
