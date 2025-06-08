@@ -15,16 +15,17 @@ WORKLOAD_MNT=$(realpath $(dirname ${BASH_SOURCE[0]})/..)/
 MYSQL_DIR=${WORKLOAD_MNT}mysql/
 USER_DATA=${WORKLOAD_MNT}user-data
 
+source ~/env/user_openrc
+
 for h in compute1 compute2; do
     while ! ssh $h true; do sleep 3; done
+    while ! openstack compute service list | grep $h | grep -q 'enabled.*up'; do sleep 3; done
 done
 
 ssh -T compute1 <<EOF
 sed -i "s/^virt_type=.*/virt_type=kvm/" /etc/nova/nova-compute.conf
 systemctl restart nova-compute
 EOF
-
-source ~/env/user_openrc
 
 PROJECT_NAME=$OS_PROJECT_NAME
 

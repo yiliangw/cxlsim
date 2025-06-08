@@ -27,3 +27,9 @@ def config_experiment_sync(e: Experiment, sync: bool, pci_latency: int = 500, et
     n.eth_latency = eth_latency
     if isinstance(n, SwitchNet):
       n.sync = sync
+
+def config_experiment_checkpoint(e: Experiment, cp: bool):
+  e.checkpoint = cp
+  for h in e.hosts:
+    if isinstance(h, Gem5Host):
+      h.nockp = not cp

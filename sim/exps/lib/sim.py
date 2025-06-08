@@ -26,8 +26,10 @@ class OpenstackNodeConfig(NodeConfig):
             "earlyprintk=ttyS0 console=ttyS0 " \
             "no_timer_check memory_corruption_check=0 random.trust_cpu=on " \
             "net.ifnames=0 " \
+            "raid=noautodetect " \
             "root=/dev/sda1 simbricks_guest_input=/dev/sdb rw"
         self.force_mac_addrs = {}
+        self.force_ip_addrs = {}
         self.dhcp_ifaces = []
         self.pre_cp_tc_ifaces = []
         self.pre_cp_tc_rate = '10mbit'
@@ -45,6 +47,10 @@ class OpenstackNodeConfig(NodeConfig):
             ]
             cmds += [
                 'systemctl restart systemd-networkd',
+            ]
+        if len(self.force_ip_addrs) > 0:
+            cmds += [
+                f'ip addr add dev {dev} {cidr} brd +' for dev, cidr in self.force_ip_addrs.items()
             ]
         if len(self.dhcp_ifaces) > 0:
             cmds += [
@@ -86,6 +92,7 @@ class OpenstackGem5Host(Gem5Host):
         super().__init__(node_config)
         self.node_config: OpenstackNodeConfig
         self.variant = 'debug'
+        self.gem5_py = 'simbricks_cxl.py'
 
     def run_cmd(self, env: ExpEnv) -> str:
         cpu_type = self.cpu_type
@@ -95,10 +102,8 @@ class OpenstackGem5Host(Gem5Host):
         cmd = f'{env.gem5_path(self.variant)} --outdir={env.gem5_outdir(self)} '
         cmd += ' '.join(self.extra_main_args)
         cmd += (
-            f' {env.gem5_py_path} --caches --l2cache '
-            '--l1d_size=32kB --l1i_size=32kB --l2_size=32MB '
-            '--l1d_assoc=8 --l1i_assoc=8 --l2_assoc=16 '
-            f'--cacheline_size=64 --cpu-clock={self.cpu_freq}'
+            f' {env.repodir}/sims/external/gem5/configs/simbricks/{self.gem5_py} '
+            f' --cpu-clock={self.cpu_freq}'
             f' --sys-clock={self.sys_clock} '
             f'--checkpoint-dir={env.gem5_cpdir(self)} '
             f'--kernel={self.node_config.vmlinux_path} '
@@ -242,7 +247,7 @@ class IdleCheckpointApp(AppConfig):
             ]
         else:
             cmds += [
-                f'while [ ! -f {self.CHECKPOINT_FILE} ]; do sleep 10; done',
+                f'while [ ! -f {self.CHECKPOINT_FILE} ]; do sleep 30; done',
                 'sleep 3',
             ]
         return cmds

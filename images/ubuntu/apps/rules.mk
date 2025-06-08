@@ -44,7 +44,7 @@ $(ubuntu_dimg_o)$(disk)/disk.raw: $(ubuntu_dimg_o)$(src_disk)/disk.qcow2 $(disk_
 
 .PHONY: qemu-ubuntu-raw-$(disk)
 qemu-ubuntu-raw-$(disk): $(ubuntu_dimg_o)$(disk)/disk.raw $(host_config_deps) $(ubuntu_vmlinux) $(ubuntu_initrd)
-	sudo -E $(qemu) -machine q35,accel=kvm -cpu host -smp 8 -m 16G \
+	sudo -E $(qemu) -machine q35,accel=kvm -cpu host -smp 2 -m 16G \
 	-kernel $(ubuntu_vmlinux) \
 	-append "$(ubuntu_kernel_cmdline)" \
 	-initrd $(ubuntu_initrd) \
