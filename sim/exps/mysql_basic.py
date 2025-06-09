@@ -68,7 +68,9 @@ class ControllerApp(UbuntuAppConfig):
     def run_cmds(self, node) -> tp.List[str]:
         """Commands to run for this application."""
         return [
-            f'ssh {self.client_ip} "bash /root/bench.sh'
+            f'ssh {self.client_ip} "bash /root/bench.sh',
+            'ssh compute1 shutdown now',
+            'ssh compute2 shutdown now'
         ]
 
 
@@ -88,6 +90,7 @@ controller_config.force_mac_addrs = {
 controller_config.app = ControllerApp()
 controller = OpenstackGem5Host(controller_config)
 controller.name = 'controller'
+controller.cpu_freq = CONFIG.cpu_freq
 controller.wait = True
 e.add_host(controller)
 
@@ -105,7 +108,8 @@ compute1_config.force_mac_addrs = {
 compute1_config.app = IdleCheckpointApp()
 compute1 = OpenstackGem5Host(compute1_config)
 compute1.name = 'compute1'
-compute1.wait = False
+compute1.cpu_freq = CONFIG.cpu_freq
+compute1.wait = True
 e.add_host(compute1)
 
 # create compute node 2
@@ -122,7 +126,8 @@ compute2_config.force_mac_addrs = {
 compute2_config.app = IdleCheckpointApp()
 compute2 = OpenstackGem5Host(compute2_config)
 compute2.name = 'compute2'
-compute2.wait = False
+compute2.cpu_freq = CONFIG.cpu_freq
+compute2.wait = True
 e.add_host(compute2)
 
 # set up management network
