@@ -14,7 +14,10 @@ CHECKPOINT = True
 DISK = 'mysql/basic/controller'
 NETWORK = True
 SYNC = True
+CORES = 4
+MEMORY = 8192
 GEM5_VARIANT = 'fast'
+GEM5_CPU_TYPE_CP = 'X86KvmCPU'
 NO_SIMBRICKS= False
 GEM5_PY='simbricks_cxl.py'
 
@@ -45,12 +48,13 @@ e.checkpoint = CHECKPOINT
 # create the controller node
 host_config = UbuntuNodeConfig()
 host_config.raw_disk_image_path = projenv.get_ubuntu_raw_disk(DISK)
-host_config.cores = 4
-host_config.memory = 8192
+host_config.cores = CORES
+host_config.memory = MEMORY
 host_config.app = ControllerApp()
 host = OpenstackGem5Host(host_config)
 host.name = 'host'
 host.variant = GEM5_VARIANT
+host.cpu_type_cp = GEM5_CPU_TYPE_CP
 host.gem5_py = GEM5_PY
 host.wait = True
 e.add_host(host)

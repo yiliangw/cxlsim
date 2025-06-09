@@ -91,7 +91,8 @@ class OpenstackGem5Host(Gem5Host):
     def __init__(self, node_config: OpenstackNodeConfig):
         super().__init__(node_config)
         self.node_config: OpenstackNodeConfig
-        self.variant = 'debug'
+        self.cpu_type_cp = 'X86KvmCPU'
+        self.variant = 'fast'
         self.gem5_py = 'simbricks_cxl.py'
 
     def run_cmd(self, env: ExpEnv) -> str:
@@ -103,8 +104,8 @@ class OpenstackGem5Host(Gem5Host):
         cmd += ' '.join(self.extra_main_args)
         cmd += (
             f' {env.repodir}/sims/external/gem5/configs/simbricks/{self.gem5_py} '
-            f' --cpu-clock={self.cpu_freq}'
-            f' --sys-clock={self.sys_clock} '
+            f'--cpu-clock={self.cpu_freq} '
+            f'--sys-clock={self.sys_clock} '
             f'--checkpoint-dir={env.gem5_cpdir(self)} '
             f'--kernel={self.node_config.vmlinux_path} '
             f'--command-line "{self.node_config.kernel_command_line}" '
@@ -114,6 +115,12 @@ class OpenstackGem5Host(Gem5Host):
             f'--num-cpus={self.node_config.cores} '
             '--mem-type=DDR4_2400_16x4 '
         )
+        if cpu_type != 'X86KvmCPU':
+            cmd += (
+                '--caches --l2cache '
+                '--l1d_size=32kB --l1i_size=32kB --l2_size=32MB '
+                '--l1d_assoc=8 --l1i_assoc=8 --l2_assoc=16 '
+            )
 
         if self.node_config.kcmd_append:
             cmd += f'--command-line-append="{self.node_config.kcmd_append}" '

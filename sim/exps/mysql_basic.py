@@ -68,7 +68,7 @@ class ControllerApp(UbuntuAppConfig):
     def run_cmds(self, node) -> tp.List[str]:
         """Commands to run for this application."""
         return [
-            f'ssh {self.client_ip} "bash /root/bench.sh',
+            f'ssh {self.client_ip} "bash /root/bench.sh"',
             'ssh compute1 shutdown now',
             'ssh compute2 shutdown now'
         ]
