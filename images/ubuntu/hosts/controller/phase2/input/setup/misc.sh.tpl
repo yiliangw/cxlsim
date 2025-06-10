@@ -17,8 +17,11 @@ openstack subnet create --network provider \
 # According to https://bugs.launchpad.net/nova/+bug/2051907, neutron policy for create_port_binding requires `service` role
 openstack role add --project service --user neutron service
 
-# Add the use as admin of the project
-openstack role add --project {{ .openstack.id.nonadmin.project }} --user {{ .openstack.id.nonadmin.user.name }} admin
+# For migration
+sudo chsh -s /bin/bash nova
+# When UsePAM is disabled for SSH, the server will refuse public key authentication
+# for a disabled user (e.g., without a password set).
+echo nova:nova | sudo chpasswd
 
 . ~/env/user_openrc
 

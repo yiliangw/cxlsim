@@ -15,7 +15,7 @@ sudo apt-get update && sudo -E apt-get install -y \
   mariadb-server python3-pymysql \
   rabbitmq-server \
   memcached python3-memcache \
-  etcd \
+  etcd-server \
   keystone \
   glance \
   placement-api \
@@ -23,5 +23,3 @@ sudo apt-get update && sudo -E apt-get install -y \
   neutron-server neutron-plugin-ml2 \
   neutron-openvswitch-agent neutron-l3-agent neutron-dhcp-agent \
   neutron-metadata-agent
-
-pip3 install osc-placement

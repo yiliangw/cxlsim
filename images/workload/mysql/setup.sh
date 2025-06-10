@@ -55,10 +55,15 @@ openstack flavor create \
     --vcpus $CLIENT_VCPUS --ram $CLIENT_RAM --disk $CLIENT_DISK \
     client
 
-# Wait for the compute node to be online
+# Wait for the compute nodes to be online
 while ! openstack compute service list | grep compute1 | grep -q 'enabled.*up'; do
     sleep 5
 done
+while ! openstack compute service list | grep compute2 | grep -q 'enabled.*up'; do
+    sleep 5
+done
+
+sleep 5
 
 openstack server create \
     --flavor server --image ubuntu --key-name mykey \

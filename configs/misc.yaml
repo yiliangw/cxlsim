@@ -4,4 +4,4 @@ local:
       interface: eth0
     provider:
       interface: eth1
-      bridge: provider-br
+      bridge: br-provider

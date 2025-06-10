@@ -8,6 +8,10 @@ if [ -f .done ]; then
     exit 0
 fi
 
+# Disable PAM for SSH to speed up
+sudo sed -i 's/^#\?UsePAM.*/UsePAM no/' /etc/ssh/sshd_config
+sudo systemctl restart ssh
+
 # Chrony
 sudo tee /etc/chrony/chrony.conf < chrony.conf > /dev/null
 sudo systemctl restart chrony
@@ -34,6 +38,12 @@ sudo cp etcd /etc/default/etcd
 sudo systemctl enable etcd
 sudo systemctl restart etcd
 
+# Bring up ovs interfaces
+sudo cp sbin/setup-ovs-iface.sh /usr/local/sbin
+sudo chmod +x /usr/local/sbin/setup-ovs-iface.sh
+sudo cp services/ovs-iface-up.service /etc/systemd/system
+sudo systemctl enable --now ovs-iface-up
+
 bash keystone.sh
 bash glance.sh
 bash placement.sh
@@ -42,6 +52,12 @@ bash neutron.sh
 
 # Miscellaneous setup
 bash misc.sh
+
+# Set up provider veth interfaces
+sudo cp sbin/setup-provider-veth.sh /usr/local/sbin
+sudo chmod +x /usr/local/sbin/setup-provider-veth.sh
+sudo cp services/provider-veth-up.service /etc/systemd/system
+sudo systemctl enable --now provider-veth-up
 
 touch .done
 

@@ -7,13 +7,8 @@ sudo usermod -aG sudo $USER
 sudo usermod -aG disk $USER
 sudo usermod -aG kvm $USER
 
-# Do not wait for the network during boot
-sudo systemctl mask systemd-networkd-wait-online
-# Disable graphical interface
-sudo systemctl set-default multi-user.target
-
-# OpenStack 2024.1 (Caracal)
-sudo add-apt-repository -y cloud-archive:caracal
+# # OpenStack 2024.1 (Caracal)
+# sudo add-apt-repository -y cloud-archive:caracal
 
 sudo apt-get update
 
@@ -32,20 +27,14 @@ sudo -E apt-get install -y \
 
 sudo -E apt-get install -y qemu-guest-agent
 
-# # Other packages
-# sudo -E apt-get install -y \
-#   iproute2 \
-#   iperf3 \
-#   stress-ng
-
 mkdir /tmp/input
 pushd /tmp/input
 
 sudo tar xf /dev/sdb
 sudo chown -R $(id -u):$(id -g) .
 
-sudo cp simbricks-guestinit.sh /sbin/simbricks-guestinit.sh
-sudo chmod +x /sbin/simbricks-guestinit.sh
+sudo cp simbricks-guestinit.sh /usr/local/sbin/simbricks-guestinit.sh
+sudo chmod +x /usr/local/sbin/simbricks-guestinit.sh
 sudo cp simbricks-guestinit.service /etc/systemd/system/
 sudo systemctl enable simbricks-guestinit
 

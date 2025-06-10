@@ -11,6 +11,16 @@ fi
 sudo tee /etc/chrony/chrony.conf < chrony.conf > /dev/null
 sudo systemctl restart chrony
 
+# Bring up ovs interfaces
+sudo cp sbin/setup-ovs-iface.sh /usr/local/sbin
+sudo chmod +x /usr/local/sbin/setup-ovs-iface.sh
+sudo cp services/ovs-iface-up.service /etc/systemd/system
+sudo systemctl enable --now ovs-iface-up
+
+# Disable PAM for SSH to speed up
+sudo sed -i 's/^#\?UsePAM.*/UsePAM no/' /etc/ssh/sshd_config
+sudo systemctl restart ssh
+
 # Configure libvirtd for live migration
 sudo sed -i 's/^#listen_tls.*/listen_tls = 0/' /etc/libvirt/libvirtd.conf
 sudo sed -i 's/^#listen_tcp.*/listen_tcp = 1/' /etc/libvirt/libvirtd.conf
@@ -36,7 +46,11 @@ sudo chmod 600 authorized_keys id_rsa config
 sudo chown -R nova:nova /var/lib/nova/.ssh
 popd
 
+# For migration
 sudo chsh -s /bin/bash nova
+# When UsePAM is disabled for SSH, the server will refuse public key authentication
+# for a disabled user (e.g., without a password set).
+echo nova:nova | sudo chpasswd
 
 # Wait for the controller to be ready
 while ! ssh controller 'test -f ~/setup/.done'; do
@@ -48,6 +62,12 @@ source ~/env/openstackrc
 
 bash nova.sh
 bash neutron.sh
+
+# Set up provider veth interfaces
+sudo cp sbin/setup-provider-veth.sh /usr/local/sbin
+sudo chmod +x /usr/local/sbin/setup-provider-veth.sh
+sudo cp services/provider-veth-up.service /etc/systemd/system
+sudo systemctl enable --now provider-veth-up
 
 sudo systemctl restart ovs-iface-up
 

@@ -42,13 +42,8 @@ sleep 3
 
 sudo systemctl restart ovs-iface-up
 
-sudo systemctl restart nova-api
-sudo systemctl restart neutron-server
-sudo systemctl restart neutron-openvswitch-agent
-sudo systemctl restart neutron-dhcp-agent
-sudo systemctl restart neutron-metadata-agent
-sudo systemctl restart neutron-l3-agent
-
-sleep 3
+sudo systemctl restart \
+  nova-api neutron-server neutron-openvswitch-agent neutron-dhcp-agent \
+  neutron-metadata-agent neutron-l3-agent
 
 sudo systemctl restart ovs-iface-up
