@@ -7,8 +7,6 @@ pushd /tmp/input
 
 tar xf $INPUT_TAR
 
-sudo touch /etc/cloud/cloud-init.disabled
-
 sudo tee /etc/hosts < hosts > /dev/null
 # sudo tee /etc/hostname < hostname > /dev/null
 sudo hostnamectl set-hostname $(cat hostname)

@@ -8,8 +8,6 @@ if [ -f .done ]; then
     exit 0
 fi
 
-# Disable PAM for SSH to speed up
-sudo sed -i 's/^#\?UsePAM.*/UsePAM no/' /etc/ssh/sshd_config
 sudo systemctl restart ssh
 
 # Chrony

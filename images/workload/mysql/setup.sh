@@ -63,7 +63,7 @@ while ! openstack compute service list | grep compute2 | grep -q 'enabled.*up'; 
     sleep 5
 done
 
-sleep 5
+sleep 10
 
 openstack server create \
     --flavor server --image ubuntu --key-name mykey \

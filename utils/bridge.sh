@@ -15,6 +15,7 @@ case $1 in
     echo "allow ${BRIDGE_IF}" | sudo tee -a /etc/qemu/bridge.conf
     ;;
   cleanup)
+    sudo ip route flush dev ${BRIDGE_IF}
     sudo ip link del ${BRIDGE_IF} || true
     ;;
   *)

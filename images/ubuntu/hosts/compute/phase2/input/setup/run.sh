@@ -17,10 +17,6 @@ sudo chmod +x /usr/local/sbin/setup-ovs-iface.sh
 sudo cp services/ovs-iface-up.service /etc/systemd/system
 sudo systemctl enable --now ovs-iface-up
 
-# Disable PAM for SSH to speed up
-sudo sed -i 's/^#\?UsePAM.*/UsePAM no/' /etc/ssh/sshd_config
-sudo systemctl restart ssh
-
 # Configure libvirtd for live migration
 sudo sed -i 's/^#listen_tls.*/listen_tls = 0/' /etc/libvirt/libvirtd.conf
 sudo sed -i 's/^#listen_tcp.*/listen_tcp = 1/' /etc/libvirt/libvirtd.conf

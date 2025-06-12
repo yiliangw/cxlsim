@@ -12,7 +12,7 @@ platform:
       compute:
         size: 250G 
     user:
-      name: ubuntu
-      password: ubuntu
+      name: cxlsim
+      password: cxlsim
     root:
       password: root
