@@ -144,3 +144,21 @@ sleep 5
 
 openstack server migrate server --host compute1 --os-compute-api-version 2.56 --wait
 openstack server migration confirm server
+
+# Prevent loading interface drivers on boot
+echo "Setting up blacklist_if"
+for h in $COMPUTE_NODES; do
+    scp -r ../common/blacklist_if/ $h:/tmp/blacklist_if
+    tmux new -d -s $h "rsh $h 'bash /tmp/blacklist_if/setup.sh && rm -rf /tmp/blacklist_if'"
+done;
+
+bash ../common/blacklist_if/setup.sh
+
+set +x
+for h in $COMPUTE_NODES; do
+    echo -n "Waiting for $h"
+    while tmux has-session -t $h 2>/dev/null; do echo -n "."; sleep 1; done; echo
+done 
+set -x
+
+popd

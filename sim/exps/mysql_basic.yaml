@@ -1,27 +1,27 @@
 sync: true
 pci_latency: 1000 # ns
 eth_latency: 1000 # ns
-cpu_freq: '2.9GHz'
+cpu_freq: '4GHz'
 cp: true
-ssh_control: false
+console: true
 hosts:
   controller:
-    cores: 2
+    cores: 1
     memory: 8192
     management_mac: '52:54:00:11:10:00'
     provider_mac: '52:54:00:11:11:00'
     gateway_mac: '52:54:00:11:12:00'
-    qemu_ssh_port: 10200
+    console_port: 10200
   compute1:
-    cores: 2
+    cores: 1
     memory: 8192 
     management_mac: '52:54:00:11:10:01'
     provider_mac: '52:54:00:11:11:01'
-    qemu_ssh_port: 10201
+    console_port: 10201
   compute2:
-    cores: 2
+    cores: 1
     memory: 8192
     management_mac: '52:54:00:11:10:02'
     provider_mac: '52:54:00:11:11:02' 
-    qemu_ssh_port: 10202
+    console_port: 10202
 

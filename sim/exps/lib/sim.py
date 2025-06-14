@@ -8,7 +8,7 @@ import typing as tp
 import math
 
 
-class OpenstackNodeConfig(NodeConfig):
+class CxlSimNodeConfig(NodeConfig):
 
     def __init__(self):
         super().__init__()
@@ -28,10 +28,12 @@ class OpenstackNodeConfig(NodeConfig):
             "net.ifnames=0 " \
             "raid=noautodetect " \
             "root=/dev/sda1 simbricks_guest_input=/dev/sdb rw"
+        self.eth_driver = 'i40e'
+        """Interface drivers"""
         self.force_mac_addrs = {}
         self.force_ip_addrs = {}
         self.dhcp_ifaces = []
-        self.pre_cp_tc_ifaces = []
+        self.pre_cp_tc_devs = []
         self.pre_cp_tc_rate = '10mbit'
         self.pre_cp_tc_burst = '32kb'
         self.pre_cp_tc_latency = '200ms'
@@ -41,6 +43,7 @@ class OpenstackNodeConfig(NodeConfig):
         cmds += [
             'sleep 5'  # give the system enough to initialize
         ]
+        cmds += [f'modprobe {self.eth_driver}']
         if len(self.force_mac_addrs) > 0:
             cmds += [
                 f'ip link set dev {dev} address {mac}' for dev, mac in self.force_mac_addrs.items()
@@ -65,10 +68,10 @@ class OpenstackNodeConfig(NodeConfig):
             cmds += [
                 'sleep 3'
             ]
-        if len(self.pre_cp_tc_ifaces) > 0:
+        if len(self.pre_cp_tc_devs) > 0:
             cmds += [
-                f'tc qdisc add dev {iface} root tbf rate {self.pre_cp_tc_rate} burst {self.pre_cp_tc_burst} latency {self.pre_cp_tc_latency}'
-                for iface in self.pre_cp_tc_ifaces
+                f'tc qdisc add dev {dev} root tbf rate {self.pre_cp_tc_rate} burst {self.pre_cp_tc_burst} latency {self.pre_cp_tc_latency}'
+                for dev in self.pre_cp_tc_devs
             ]
         cmds += [
             'ip link show',
@@ -76,24 +79,71 @@ class OpenstackNodeConfig(NodeConfig):
         ]
         return cmds
 
-    def prepare_post_cp(self):
+    def cleanup_pre_cp(self):
         cmds = []
-        if len(self.pre_cp_tc_ifaces) > 0:
-            cmds += [
-                f'tc qdisc del dev {iface} root'
-                for iface in self.pre_cp_tc_ifaces
-            ]
+        cmds += [f'tc qdisc del dev {dev} root' for dev in self.pre_cp_tc_devs]
+        cmds += [
+            "nic_pci_addrs=$(lspci -nn -D | grep -i ethernet | awk '{print $1}')",
+            f"for addr in $nic_pci_addrs; do echo $addr > /sys/bus/pci/drivers/{self.eth_driver}/unbind; done"
+        ]
+        return cmds
+
+    def prepare_post_cp(self):
+        cmds = [
+            f"for addr in $nic_pci_addrs; do echo $addr > /sys/bus/pci/drivers/{self.eth_driver}/bind; done"
+        ]
+        return cmds
+
+    def config_str(self) -> str:
+        if self.sim == 'gem5':
+            cp_es = [] if self.nockp else ['m5 checkpoint']
+            exit_es = ['m5 exit']
+        else:
+            cp_es = ['echo ready to checkpoint']
+            exit_es = ['poweroff -f']
+
+        es = self.prepare_pre_cp() + self.app.prepare_pre_cp() + \
+            self.cleanup_pre_cp() + cp_es + \
+            self.prepare_post_cp() + self.app.prepare_post_cp() + \
+            self.run_cmds() + self.cleanup_cmds() + exit_es
+        return '\n'.join(es)
+
+
+class CxlSimAppConfig(AppConfig):
+
+    def __init__(self):
+        self.input_tar_path = None
+        self.install_script_path = None
+
+    def config_files(self) -> tp.Dict[str, tp.IO]:
+        files = {}
+        if self.input_tar_path is not None:
+            files['input.tar'] = open(self.input_tar_path, 'rb')
+        if self.install_script_path is not None:
+            files['install.sh'] = open(self.install_script_path, 'rb')
+        return files
+
+    def prepare_pre_cp(self) -> tp.List[str]:
+        cmds = []
+        if self.input_tar_path is not None:
+            cmd = 'bash /tmp/guest/install.sh'
+            if self.input_tar_path is not None:
+                cmd = 'INPUT_TAR=/tmp/guest/input.tar ' + cmd
+            cmds.append(cmd)
         return cmds
 
 
-class OpenstackGem5Host(Gem5Host):
+class CxlSimGem5Host(Gem5Host):
 
-    def __init__(self, node_config: OpenstackNodeConfig):
+    def __init__(self, node_config: CxlSimNodeConfig):
         super().__init__(node_config)
-        self.node_config: OpenstackNodeConfig
+        self.node_config: CxlSimNodeConfig
         self.cpu_type_cp = 'X86KvmCPU'
+        self.cpu_type = 'TimingSimpleCPU'
+        self.sys_clock = '1GHz'
         self.variant = 'fast'
         self.gem5_py = 'simbricks_cxl.py'
+        self.console_port = None
 
     def run_cmd(self, env: ExpEnv) -> str:
         cpu_type = self.cpu_type
@@ -101,6 +151,8 @@ class OpenstackGem5Host(Gem5Host):
             cpu_type = self.cpu_type_cp
 
         cmd = f'{env.gem5_path(self.variant)} --outdir={env.gem5_outdir(self)} '
+        if self.console_port:
+            cmd += '--listener-mode=on '
         cmd += ' '.join(self.extra_main_args)
         cmd += (
             f' {env.repodir}/sims/external/gem5/configs/simbricks/{self.gem5_py} '
@@ -115,6 +167,13 @@ class OpenstackGem5Host(Gem5Host):
             f'--num-cpus={self.node_config.cores} '
             '--mem-type=DDR4_2400_16x4 '
         )
+
+        if self.console_port:
+            cmd += (
+                f'--termport {self.console_port} '
+            )
+
+        # KvmCPU is incompatible with cache
         if cpu_type != 'X86KvmCPU':
             cmd += (
                 '--caches --l2cache '
@@ -170,9 +229,9 @@ class OpenstackGem5Host(Gem5Host):
 
 class OpenstackQemuHost(QemuHost):
 
-    def __init__(self, node_config: OpenstackNodeConfig):
+    def __init__(self, node_config: CxlSimNodeConfig):
         super().__init__(node_config)
-        self.node_config: OpenstackNodeConfig
+        self.node_config: CxlSimNodeConfig
         self.ssh_port = None
 
     def prep_cmds(self, env: ExpEnv) -> tp.List[str]:
@@ -237,9 +296,9 @@ class OpenstackQemuHost(QemuHost):
         return cmd
 
 
-class IdleCheckpointApp(AppConfig):
+class IdleCheckpointApp(CxlSimAppConfig):
 
-    CHECKPOINT_FILE = '/root/.simbricks.checkpoint'
+    CHECKPOINT_FILE = '/root/checkpoint.barrier'
 
     def __init__(self):
         super().__init__()
@@ -254,8 +313,9 @@ class IdleCheckpointApp(AppConfig):
             ]
         else:
             cmds += [
-                f'while [ ! -f {self.CHECKPOINT_FILE} ]; do sleep 30; done',
-                'sleep 3',
+                f'printf Waiting for {self.CHECKPOINT_FILE}...',
+                f'while ! test -f {self.CHECKPOINT_FILE}; do sleep 30; done;',
+                'sleep 3;',
             ]
         return cmds
 
