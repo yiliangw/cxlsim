@@ -19,9 +19,27 @@ Prerequisites:
 
 Steps:
 
+```bash
+sudo apt-get update && sudo apt-get install -y \
+    build-essential libpcap-dev libboost-dev libboost-fiber-dev \
+    libboost-iostreams-dev libboost-coroutine-dev \
+    qemu-system-x86 guestfish cloud-image-utils \
+    scons m4 scons zlib1g zlib1g-dev libprotobuf-dev protobuf-compiler \
+    libprotoc-dev libgoogle-perftools-dev \
+    moreutils \
+    libglib2.0-dev libpixman-1-dev ninja-build \
+    libefl-dev
+
+
+sudo sysctl -w kernel.perf_event_paranoid=0
+```
+
+
 1. Initialize submodules:
     ```bash
-    git submodules update --init --recursive --depth 1
+    git submodule update --init --depth 1 apps/linux
+    git submodule update --init sim/simbricks
+    git -C sim/simbricks submodule update --init --recursive sims/external/gem5
     ```
 
 2. Add the current user to `docker` and `kvm` groups:
@@ -77,6 +95,8 @@ The following steps should be executed inside the container.
 
     - Login into `controller` and setup up the workload by running:
     ```bash
+
+    # Set up MySQL workload
     mount -t 9p workload /mnt
     bash /mnt/mysql/setup.sh
     ```

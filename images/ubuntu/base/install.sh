@@ -25,13 +25,21 @@ sudo -E apt-get install -y \
   bc \
   dwarves
 
-sudo -E apt-get install -y qemu-guest-agent
+sudo -E apt-get install -y \
+  qemu-guest-agent \
+  rsh-server rsh-redone-client
 
 mkdir /tmp/input
 pushd /tmp/input
 
 sudo tar xf /dev/sdb
 sudo chown -R $(id -u):$(id -g) .
+
+# Allow rsh connection to root
+sudo install -m 600 /dev/null /root/.rhosts
+cat <<EOF | sudo tee /root/.rhosts
++ +
+EOF
 
 sudo cp simbricks-guestinit.sh /usr/local/sbin/simbricks-guestinit.sh
 sudo chmod +x /usr/local/sbin/simbricks-guestinit.sh

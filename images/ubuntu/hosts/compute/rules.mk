@@ -38,8 +38,9 @@ $(o)$(_n).yaml: $(d)$(_n).yaml.tpl $(config_deps) | $(o)
 $(b)$(_n).sed: $(o)$(_n).yaml | $(b)
 	$$(call yaml2sed,$$<,$$@)
 
-$(ubuntu_install_script_o)$(_n)_phase2.sh: $(d)phase2/install.sh | $(ubuntu_install_script_o)
-	cp $(d)phase2/install.sh $$@
+$(ubuntu_install_script_o)$(_n)_phase2.sh: $(ubuntu_phase2_install_script)
+	@mkdir -p $$(@D)
+	cp $$< $$@
 
 $(ubuntu_input_tar_o)$(_n)_phase2.tar: $$(addprefix $(_inputd), \
 	$(ubuntu_phase2_common_input) \

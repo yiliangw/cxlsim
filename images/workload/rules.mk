@@ -21,10 +21,15 @@ $(workload_dimg_o)ubuntu: $(workload_config_deps)
 	@mkdir -p $(@D)
 	wget -O $@ $(call conffget,workload,.ubuntu.iso_url) && touch $@
 
+workload_common_deps := $(addprefix $(workload_o)common/,$(shell cd $(d)common && find . -type f | cut -c3-))
+
+$(workload_o)common/%: $(d)common/%
+	@mkdir -p $(@D)
+	cp $< $@
 
 mysql_workload_deps := $(addprefix $(workload_o)mysql/,$(shell cd $(d)mysql && find . -type f | cut -c3-))
 mysql_workload_deps += $(workload_dimg_o)ubuntu
-mysql_workload_deps += $(workload_o)user-data
+mysql_workload_deps += $(workload_common_deps)
 
 $(workload_o)mysql/%: $(d)mysql/%
 	@mkdir -p $(@D)

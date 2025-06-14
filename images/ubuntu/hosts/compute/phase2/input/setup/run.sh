@@ -3,10 +3,7 @@ set -xe
 
 pushd `dirname ${BASH_SOURCE[0]}`
 
-if [ -f .done ]; then
-    echo "Already set up"
-    exit 1
-fi
+source common/run_pre.sh
 
 sudo tee /etc/chrony/chrony.conf < chrony.conf > /dev/null
 sudo systemctl restart chrony
@@ -48,25 +45,19 @@ sudo chsh -s /bin/bash nova
 # for a disabled user (e.g., without a password set).
 echo nova:nova | sudo chpasswd
 
-# Wait for the controller to be ready
-while ! ssh controller 'test -f ~/setup/.done'; do
-    echo "Waiting for controller to be set up..."
-    sleep 3
-done
+# # Wait at the barrier for the controller
+set +x
+echo -n "Waiting for ~/setup.barrier"
+while ! test -f ~/setup.barrier 2> /dev/null; do 
+    echo -n "."; sleep 3; 
+done; echo
+set -x
 
 source ~/env/openstackrc
 
 bash nova.sh
 bash neutron.sh
 
-# Set up provider veth interfaces
-sudo cp sbin/setup-provider-veth.sh /usr/local/sbin
-sudo chmod +x /usr/local/sbin/setup-provider-veth.sh
-sudo cp services/provider-veth-up.service /etc/systemd/system
-sudo systemctl enable --now provider-veth-up
-
-sudo systemctl restart ovs-iface-up
-
-touch .done
+source common/run_post.sh
 
 popd

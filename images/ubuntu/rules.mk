@@ -43,9 +43,6 @@ $(o)tmpdisks/%/disk.qcow2: $(ubuntu_dimg_o)%/disk.qcow2 | $(o)tmpdisks/%/
 	@rm -f $@
 	$(QEMU_IMG) create -f qcow2 -o backing_file=$(realpath --relative-to=$(@D) $<) -F qcow2 $@ 
 
-.PHONY: ubuntu-host-base-dimgs
-ubuntu-host-base-dimgs: $(addprefix $(ubuntu_dimg_o),$(addsuffix /disk.qcow2,controller_base compute1_base compute2_base)) 
-
 .PHONY: qemu-ubuntu-base
 qemu-ubuntu-base: $(o)tmpdisks/base/disk.qcow2 $(ubuntu_vmlinux) $(ubuntu_initrd)
 	sudo -E $(qemu) -machine q35 -cpu Skylake-Server -smp $(shell echo $$((`nproc` / 2))) -m $(shell echo $$((`free -m | awk '/^Mem:/ {print $$4}'` / 2)))M  \

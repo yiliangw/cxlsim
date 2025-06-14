@@ -52,24 +52,21 @@ qemu-ubuntu-raw-$(disk): $(ubuntu_dimg_o)$(disk)/disk.raw $(host_config_deps) $(
 	-fsdev local,id=shared_dev,path=$(workload_o),security_model=none,readonly \
 	-device virtio-9p-pci,fsdev=shared_dev,mount_tag=workload \
 	-netdev bridge,id=net-management,br=$$(call conffget,host,.bridges.management.name) \
-	-device virtio-net-pci,netdev=net-management,mac=$(management_mac) \
+	-device e1000,netdev=net-management,mac=$(management_mac) \
 	-netdev bridge,id=net-provider,br=$$(call conffget,host,.bridges.provider.name) \
-	-device virtio-net-pci,netdev=net-provider,mac=$(provider_mac) \
+	-device e1000,netdev=net-provider,mac=$(provider_mac) \
 	-boot c \
 	-display none -serial mon:stdio
 	touch $$<
 endef
 
 $(eval $(call ubuntu_disk_backing_rules,setup/controller,mysql/base/controller,0,1,$(mysql_workload_deps)))
-$(eval $(call ubuntu_disk_backing_rules,setup/compute1,mysql/base/compute1,2,3))
-$(eval $(call ubuntu_disk_backing_rules,setup/compute2,mysql/base/compute2,4,5))
+$(eval $(call ubuntu_disk_backing_rules,setup/compute1,mysql/base/compute1,2,3,$(mysql_workload_deps)))
+$(eval $(call ubuntu_disk_backing_rules,setup/compute2,mysql/base/compute2,4,5,$(mysql_workload_deps)))
 $(eval $(call ubuntu_disk_rules,mysql/base,$(addprefix mysql/base/,controller compute1 compute2)))
 
 $(eval $(call ubuntu_disk_convert_raw_rules,mysql/base/controller,mysql/basic/controller,0,1))
 $(eval $(call ubuntu_disk_convert_raw_rules,mysql/base/compute1,mysql/basic/compute1,2,3))
 $(eval $(call ubuntu_disk_convert_raw_rules,mysql/base/compute2,mysql/basic/compute2,4,5))
 $(eval $(call ubuntu_raw_disk_rules,mysql/basic,$(addprefix mysql/basic/,controller compute1 compute2)))
-
-.PHONY: clean-ubuntu-mysql
-clean-ubuntu-mysql: clean-ubuntu-mysql/base clean-ubuntu-raw-mysql/basic
 

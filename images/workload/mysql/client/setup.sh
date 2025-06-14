@@ -7,10 +7,13 @@ usermod -aG disk $USER
 
 export DEBIAN_FRONTEND=noninteractive
 apt-get update && apt-get install -f && apt-get install -y \
-  net-tools \
+  net-tools rsh-server rsh-redone-client \
   sysbench \
   mysql-client \
   stress-ng
+
+echo '+ +' > ~/.rhosts
+chmod 600 ~/.rhosts
 
 # wait until the server's MySQL server is ready
 while ! mysqladmin ping -h ${SERVER_IP} -u testuser --password=testpass --silent; do

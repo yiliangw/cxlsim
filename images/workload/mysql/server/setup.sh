@@ -4,7 +4,11 @@ set -xe
 
 export DEBIAN_FRONTEND=noninteractive
 apt-get update && apt-get install -f && apt-get install -y \
-    net-tools mysql-server
+    net-tools rsh-server rsh-redone-client \
+    mysql-server
+
+echo '+ +' > ~/.rhosts
+chmod 600 ~/.rhosts
 
 sed -i '/^bind-address/s/127.0.0.1/0.0.0.0/' /etc/mysql/mysql.conf.d/mysqld.cnf
 systemctl restart mysql

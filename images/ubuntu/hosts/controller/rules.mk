@@ -24,7 +24,8 @@ $(b)phase1/input.tar:
 
 inputd_ := $(b)phase2/input/
 
-$(ubuntu_install_script_o)controller_phase2.sh: $(d)phase2/install.sh | $(ubuntu_install_script_o)
+$(ubuntu_install_script_o)controller_phase2.sh: $(ubuntu_phase2_install_script)
+	@mkdir -p $(@D)
 	cp $< $@
 
 $(ubuntu_input_tar_o)controller_phase2.tar: $(inputd_) $(addprefix $(inputd_), \

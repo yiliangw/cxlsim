@@ -3,12 +3,10 @@ set -xe
 
 pushd `dirname ${BASH_SOURCE[0]}`
 
-if [ -f .done ]; then
-    echo "Already set up"
-    exit 0
-fi
+source common/run_pre.sh
 
-sudo systemctl restart ssh
+# Network configuration has been updated in common/run_pre.sh
+sudo systemctl restart rabbitmq-server memcached etcd 
 
 # Chrony
 sudo tee /etc/chrony/chrony.conf < chrony.conf > /dev/null
@@ -36,27 +34,23 @@ sudo cp etcd /etc/default/etcd
 sudo systemctl enable etcd
 sudo systemctl restart etcd
 
-# Bring up ovs interfaces
-sudo cp sbin/setup-ovs-iface.sh /usr/local/sbin
-sudo chmod +x /usr/local/sbin/setup-ovs-iface.sh
-sudo cp services/ovs-iface-up.service /etc/systemd/system
-sudo systemctl enable --now ovs-iface-up
-
 bash keystone.sh
 bash glance.sh
 bash placement.sh
 bash nova.sh
 bash neutron.sh
 
+mkdir ~/logs
+for h in compute1 compute2; do
+    set +x
+    echo -n "Waiting for $h to be online"
+    while ! ssh $h 'touch ~/setup.barrier'; do echo -n "."; sleep 3; done; echo 
+    set -x
+done
+
 # Miscellaneous setup
 bash misc.sh
 
-# Set up provider veth interfaces
-sudo cp sbin/setup-provider-veth.sh /usr/local/sbin
-sudo chmod +x /usr/local/sbin/setup-provider-veth.sh
-sudo cp services/provider-veth-up.service /etc/systemd/system
-sudo systemctl enable --now provider-veth-up
-
-touch .done
+source common/run_post.sh
 
 popd

@@ -1,6 +1,8 @@
 #!/bin/bash
 set -xe
 
+pushd `dirname ${BASH_SOURCE[0]}`
+
 SERVER_VCPUS=1
 SERVER_RAM=4096
 SERVER_DISK=10
@@ -13,16 +15,21 @@ CLIENT_IP=${CLIENT_IP:-10.10.11.112}
 
 WORKLOAD_MNT=$(realpath $(dirname ${BASH_SOURCE[0]})/..)/
 MYSQL_DIR=${WORKLOAD_MNT}mysql/
-USER_DATA=${WORKLOAD_MNT}user-data
+USER_DATA=${WORKLOAD_MNT}common/user-data
+
+COMPUTE_NODES="compute1 compute2"
 
 source ~/env/user_openrc
 
-for h in compute1 compute2; do
-    while ! ssh $h true; do sleep 3; done
-    while ! openstack compute service list | grep $h | grep -q 'enabled.*up'; do sleep 3; done
+set +x
+for h in $COMPUTE_NODES; do
+    echo -n "Waiting for $h to be online"
+    while ! rsh $h true; do echo -n "."; sleep 3; done; echo
+    while ! openstack compute service list | grep $h | grep -q 'enabled.*up'; do echo -n "."; sleep 3; done; echo
 done
+set -x
 
-ssh -T compute1 <<EOF
+rsh compute1 /bin/bash <<EOF
 sed -i "s/^virt_type=.*/virt_type=kvm/" /etc/nova/nova-compute.conf
 systemctl restart nova-compute
 EOF
@@ -56,12 +63,12 @@ openstack flavor create \
     client
 
 # Wait for the compute nodes to be online
-while ! openstack compute service list | grep compute1 | grep -q 'enabled.*up'; do
-    sleep 5
+set +x
+for h in $COMPUTE_NODES; do
+    echo -n "Waiting for $h to be online"
+    while ! openstack compute service list | grep $h | grep -q 'enabled.*up'; do echo -n "."; sleep 3; done; echo
 done
-while ! openstack compute service list | grep compute2 | grep -q 'enabled.*up'; do
-    sleep 5
-done
+set -x
 
 sleep 10
 
@@ -79,26 +86,43 @@ openstack server create \
     --os-compute-api-version 2.74 --host compute1 \
     client
 
-sleep 30
-
-while ! ssh $SERVER_IP 'true'; do sleep 3; done
-while ! ssh $CLIENT_IP 'true'; do sleep 3; done
+# rsh doesn't work here because it is not set up yet
+set +xe
+echo -n "Waiting for server to boot"
+while ! ssh $SERVER_IP 'true' 2>/dev/null; do 
+    if openstack server show server -c status | grep -q ERROR; then
+        echo Rebuilding server...
+        openstack server rebuild server;
+        echo -n "Waiting for server to boot"
+    fi
+    echo -n '.'; sleep 3; 
+done; echo
+echo -n "Waiting for client to boot"
+while ! ssh $CLIENT_IP 'true' 2>/dev/null; do 
+    if openstack server show client -c status | grep -q ERROR; then
+        echo Rebuilding client...
+        openstack server rebuild client;
+        echo -n "Waiting for client to boot"
+    fi
+    echo -n '.'; sleep 3; 
+done; echo
+set -x
 
 sleep 10
 
 scp -r ${MYSQL_DIR}server/* $SERVER_IP:
-tmux new -s server -d "ssh $SERVER_IP 'bash setup.sh' &> server.log"
+tmux new -s server -d "ssh $SERVER_IP 'bash setup.sh' | tee ~/logs/server"
 
 scp -r ${MYSQL_DIR}client/* $CLIENT_IP:
-tmux new -s client -d "ssh $CLIENT_IP 'bash setup.sh' &> client.log"
+tmux new -s client -d "ssh $CLIENT_IP 'bash setup.sh' | tee ~/logs/client"
 
 # Wait until bot tmux sessions are done
-while tmux has-session -t server 2>/dev/null; do
-    sleep 5
+set +x
+for s in server client; do
+    echo -n "Waiting for $s to set up"
+    while tmux has-session -t $s 2>/dev/null; do echo -n .; sleep 3; done; echo
 done
-while tmux has-session -t client 2>/dev/null; do
-    sleep 5
-done
+set -x
 
 source ~/env/user_openrc
 
@@ -111,7 +135,7 @@ openstack server migration confirm server
 openstack server migrate client --host compute2 --os-compute-api-version 2.56 --wait
 openstack server migration confirm client
 
-ssh -T compute1 <<EOF
+rsh compute1 /bin/bash <<EOF
 sed -i "s/^virt_type=.*/virt_type=qemu/" /etc/nova/nova-compute.conf
 systemctl restart nova-compute
 EOF
