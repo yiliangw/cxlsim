@@ -2,8 +2,11 @@ sync: true
 pci_latency: 1000 # ns
 eth_latency: 1000 # ns
 cpu_freq: '4GHz'
+cpu_type: "TimingSimpleCPU"
 cp: true
 console: true
+interactive: false
+nic: i40e
 hosts:
   controller:
     cores: 1

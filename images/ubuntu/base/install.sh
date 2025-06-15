@@ -23,11 +23,9 @@ sudo -E apt-get install -y \
   libssl-dev \
   libelf-dev \
   bc \
-  dwarves
-
-sudo -E apt-get install -y \
+  dwarves \
   qemu-guest-agent \
-  rsh-server rsh-redone-client
+  rsh-redone-server rsh-redone-client
 
 mkdir /tmp/input
 pushd /tmp/input
@@ -96,6 +94,8 @@ done
   --disable CONFIG_INPUT_TABLET \
   --disable CONFIG_INPUT_TOUCHSCREEN \
   --disable CONFIG_INPUT_MISC \
+  --disable CONFIG_HID_SUPPORT \
+  --disable CONFIG_HID
 
 ./scripts/config \
   --disable CONFIG_DRM \

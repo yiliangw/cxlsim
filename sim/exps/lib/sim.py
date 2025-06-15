@@ -37,11 +37,24 @@ class CxlSimNodeConfig(NodeConfig):
         self.pre_cp_tc_rate = '10mbit'
         self.pre_cp_tc_burst = '32kb'
         self.pre_cp_tc_latency = '200ms'
+        
+        self.disable_guestinit = False
+        """
+        Whether disable the simbricks-guestinit systemd service.
+        This option can be used to run the experiment interactively.
+        See also `CxlSimGem5Host.console_port`.
+        """
 
     def prepare_pre_cp(self):
-        cmds = super().prepare_pre_cp()
+        cmds = ['set -x']
+        if self.disable_guestinit:
+            # Copy the script for reference
+            cmds += [
+                "cp ${BASH_SOURCE[0]} /root/input.sh",
+                "exit 0"
+            ]
         cmds += [
-            'sleep 5'  # give the system enough to initialize
+            'sleep 10'  # give the system enough to initialize
         ]
         cmds += [f'modprobe {self.eth_driver}']
         if len(self.force_mac_addrs) > 0:
@@ -84,12 +97,15 @@ class CxlSimNodeConfig(NodeConfig):
         cmds += [f'tc qdisc del dev {dev} root' for dev in self.pre_cp_tc_devs]
         cmds += [
             "nic_pci_addrs=$(lspci -nn -D | grep -i ethernet | awk '{print $1}')",
-            f"for addr in $nic_pci_addrs; do echo $addr > /sys/bus/pci/drivers/{self.eth_driver}/unbind; done"
+            "echo nic_pci_addrs=$nic_pci_addrs",
+            f"for addr in $nic_pci_addrs; do echo $addr > /sys/bus/pci/drivers/{self.eth_driver}/unbind; done",
         ]
+        cmds += ['sleep 3']
         return cmds
 
     def prepare_post_cp(self):
         cmds = [
+            "echo nic_pci_addrs=$nic_pci_addrs",
             f"for addr in $nic_pci_addrs; do echo $addr > /sys/bus/pci/drivers/{self.eth_driver}/bind; done"
         ]
         return cmds
@@ -110,6 +126,8 @@ class CxlSimNodeConfig(NodeConfig):
 
 
 class CxlSimAppConfig(AppConfig):
+
+    CHECKPOINT_BARRIER_FILE = '/root/checkpoint.barrier'
 
     def __init__(self):
         self.input_tar_path = None
@@ -298,8 +316,6 @@ class OpenstackQemuHost(QemuHost):
 
 class IdleCheckpointApp(CxlSimAppConfig):
 
-    CHECKPOINT_FILE = '/root/checkpoint.barrier'
-
     def __init__(self):
         super().__init__()
         self.ssh_control = False
@@ -313,8 +329,8 @@ class IdleCheckpointApp(CxlSimAppConfig):
             ]
         else:
             cmds += [
-                f'printf Waiting for {self.CHECKPOINT_FILE}...',
-                f'while ! test -f {self.CHECKPOINT_FILE}; do sleep 30; done;',
+                f'printf Waiting for {self.CHECKPOINT_BARRIER_FILE}...',
+                f'while ! test -f {self.CHECKPOINT_BARRIER_FILE}; do sleep 30; done;',
                 'sleep 3;',
             ]
         return cmds
