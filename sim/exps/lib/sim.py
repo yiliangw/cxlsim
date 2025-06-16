@@ -37,6 +37,8 @@ class CxlSimNodeConfig(NodeConfig):
         self.pre_cp_tc_rate = '10mbit'
         self.pre_cp_tc_burst = '32kb'
         self.pre_cp_tc_latency = '200ms'
+
+        self.ckp_unbind_eth = True
         
         self.disable_guestinit = False
         """
@@ -62,7 +64,7 @@ class CxlSimNodeConfig(NodeConfig):
                 f'ip link set dev {dev} address {mac}' for dev, mac in self.force_mac_addrs.items()
             ]
             cmds += [
-                'systemctl restart systemd-networkd',
+                'netplan apply'
             ]
         if len(self.force_ip_addrs) > 0:
             cmds += [
@@ -95,19 +97,22 @@ class CxlSimNodeConfig(NodeConfig):
     def cleanup_pre_cp(self):
         cmds = []
         cmds += [f'tc qdisc del dev {dev} root' for dev in self.pre_cp_tc_devs]
-        cmds += [
-            "nic_pci_addrs=$(lspci -nn -D | grep -i ethernet | awk '{print $1}')",
-            "echo nic_pci_addrs=$nic_pci_addrs",
-            f"for addr in $nic_pci_addrs; do echo $addr > /sys/bus/pci/drivers/{self.eth_driver}/unbind; done",
-        ]
+        if self.ckp_unbind_eth:
+            cmds += [
+                "nic_pci_addrs=$(lspci -nn -D | grep -i ethernet | awk '{print $1}')",
+                "echo nic_pci_addrs=$nic_pci_addrs",
+                f"for addr in $nic_pci_addrs; do echo $addr > /sys/bus/pci/drivers/{self.eth_driver}/unbind; done",
+            ]
         cmds += ['sleep 3']
         return cmds
 
     def prepare_post_cp(self):
-        cmds = [
-            "echo nic_pci_addrs=$nic_pci_addrs",
-            f"for addr in $nic_pci_addrs; do echo $addr > /sys/bus/pci/drivers/{self.eth_driver}/bind; done"
-        ]
+        cmds = []
+        if self.ckp_unbind_eth:
+            cmds += [
+                "echo nic_pci_addrs=$nic_pci_addrs",
+                f"for addr in $nic_pci_addrs; do echo $addr > /sys/bus/pci/drivers/{self.eth_driver}/bind; done"
+            ]
         return cmds
 
     def config_str(self) -> str:
@@ -323,6 +328,7 @@ class IdleCheckpointApp(CxlSimAppConfig):
     def prepare_pre_cp(self) -> tp.List[str]:
         """Commands to run to prepare this application before checkpointing."""
         cmds = super().prepare_pre_cp()
+        cmds += ['busybox telnetd -l "/bin/sh"']
         if self.ssh_control:
             cmds += [
                 'sleep infinity'

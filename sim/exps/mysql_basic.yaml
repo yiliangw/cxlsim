@@ -6,7 +6,9 @@ cpu_type: "TimingSimpleCPU"
 cp: true
 console: true
 interactive: false
-nic: i40e
+interactive_post_ckp: false
+net_direct: true
+nic: e1000
 hosts:
   controller:
     cores: 1

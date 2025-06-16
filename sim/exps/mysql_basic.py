@@ -34,6 +34,7 @@ class ControllerApp(CxlSimAppConfig):
     def prepare_pre_cp(self) -> tp.List[str]:
         """Commands to run to prepare this application before checkpointing."""
         ckp_file = self.CHECKPOINT_BARRIER_FILE
+        client_ip = instances_ips['client']
         cmds: list = super().prepare_pre_cp()
         cmds += ['source /root/env/user_openrc']
         cmds += [
@@ -41,6 +42,7 @@ class ControllerApp(CxlSimAppConfig):
             for n in self.compute_nodes
         ]
         cmds += [
+            'sleep 30',
             f'openstack server start {' '.join(instances_ips.keys())}',
             'sleep 60',
         ]
@@ -51,9 +53,13 @@ class ControllerApp(CxlSimAppConfig):
             'sleep 10; done'
             for n, ip in instances_ips.items()
         ]
+        cmds += [
+            f'while ! ssh {client_ip} "busybox telnetd -l \'/bin/sh\'"; '
+            'do sleep 5; done'
+        ]
         # A trail
         cmds += [
-            f'while ! ssh {instances_ips['client']} "bash /root/verify.sh"; '
+            f'while ! ssh {client_ip} "bash /root/verify.sh"; '
             'do sleep 5; done'
         ]
         # Notify checkpointing
@@ -66,11 +72,23 @@ class ControllerApp(CxlSimAppConfig):
 
     def run_cmds(self, node) -> tp.List[str]:
         """Commands to run for this application."""
-        return ['m5 exit']
+        cmds = []
+        if CONFIG.net_direct:
+            # Otherwise, the switches will exit after the host exit
+            cmds += ['exit 0']
+        else:
+            cmds += ['m5 exit']
+        return cmds
 
 
 class Compute1App(IdleCheckpointApp):
-    pass
+
+    def run_cmds(self, node) -> tp.List[str]:
+        cmds = []
+        if CONFIG.interactive_post_ckp:
+            cmds += ["echo 'Configured interactive mode after checkpointing'"]
+        cmds += ["exit 0"]
+        return cmds
 
 
 class Compute2App(IdleCheckpointApp):
@@ -78,12 +96,30 @@ class Compute2App(IdleCheckpointApp):
     def run_cmds(self, node) -> tp.List[str]:
         """Commands to run for this application."""
         cmds = []
+        if CONFIG.interactive_post_ckp:
+            cmds += ["echo 'Configured interactive mode after checkpointing'"]
+            cmds += ["exit 0"]
         cmds += ['sleep 1']
+        client_ip = instances_ips['client']
         cmds += [
-            f'while ! (echo trying... && ssh -vvv {instances_ips['client']} "bash /root/bench.sh"); do sleep 1; done',
+            "until script -q -c " f'"telnet {client_ip}" ' '/dev/null <<EOF',
+            'until bash /root/bench.sh; do',
+            '   echo bench.sh failed, retrying...',
+            '   sleep 1',
+            'done',
+            'EOF',
+            'do',
+            '   echo script failed, retrying...',
+            '   sleep 1',
+            'done'
         ]
         cmds += [
-            'ssh compute1 "m5 exit"',
+            'script -q -c "telnet compute1" /dev/null <<EOF',
+            'm5 exit',
+            'EOF',
+            'script -q -c "telnet controller" /dev/null <<EOF',
+            'm5 exit',
+            'EOF',
         ]
 
         return cmds
@@ -131,21 +167,32 @@ def create_openstack_node(node: str, app: CxlSimAppConfig):
         host.console_port = getattr(CONFIG.hosts, node).console_port
     e.add_host(host)
 
-    management_nic = NIC_SIM()
-    management_nic.name = 'management'
-    management_nic.mac = getattr(CONFIG.hosts, node).management_mac
-    e.add_nic(management_nic)
-    host.add_nic(management_nic)
-    management_nic.set_network(management_net)
+    management_mac = getattr(CONFIG.hosts, node).management_mac
+    provider_mac = getattr(CONFIG.hosts, node).provider_mac
 
-    provider_nic = NIC_SIM()
-    provider_nic.name = 'provider'
-    provider_nic.mac = getattr(CONFIG.hosts, node).provider_mac
-    e.add_nic(provider_nic)
-    host.add_nic(provider_nic)
-    provider_nic.set_network(provider_net)
+    if CONFIG.net_direct:
+        host.add_netdirect(management_net)
+        host.add_netdirect(provider_net)
+        config.force_mac_addrs['eth0'] = management_mac
+        config.force_mac_addrs['eth1'] = provider_mac
+        config.ckp_unbind_eth = False
+        config.eth_driver = 'e1000'
+    else:
+        management_nic = NIC_SIM()
+        management_nic.name = 'management'
+        management_nic.mac = management_mac
+        e.add_nic(management_nic)
+        host.add_nic(management_nic)
+        management_nic.set_network(management_net)
 
-    return host, management_nic, provider_nic
+        provider_nic = NIC_SIM()
+        provider_nic.name = 'provider'
+        provider_nic.mac = provider_mac
+        e.add_nic(provider_nic)
+        host.add_nic(provider_nic)
+        provider_nic.set_network(provider_net)
+
+    return host
 
 
 create_openstack_node('controller', ControllerApp())
