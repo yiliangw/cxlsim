@@ -103,6 +103,11 @@ done
   --disable CONFIG_DRM_VIRTIO_GPU \
   --disable CONFIG_FB
 
+# Disable MCE for Gem5 compatability
+./scripts/config \
+  --disable CONFIG_INTEL_TDX_GUEST \
+  --disable CONFIG_X86_MCE
+
 ./scripts/config --refresh
 # yes "" | make oldconfig
 

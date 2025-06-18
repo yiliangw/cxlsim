@@ -16,23 +16,28 @@ $(eval $(call include_rules,$(d)gateway/rules.mk))
 ubuntu_vmlinux := $(o)vmlinux
 ubuntu_bzImage := $(o)bzImage
 ubuntu_initrd := $(o)initrd.img
+ubuntu_config := $(o)config
 
-$(ubuntu_vmlinux): $(ubuntu_base_dimg) | $(o)
+$(ubuntu_vmlinux): $(ubuntu_base_dimg)
+	@mkdir -p $(@D)
 	sudo $(virt_copy_out) -a $< /root/output/vmlinux $(@D)
 	sudo chown $(shell id -u):$(shell id -g) $@
 	touch $@
 
-$(ubuntu_bzImage): $(ubuntu_base_dimg) | $(o)
+$(ubuntu_bzImage): $(ubuntu_base_dimg)
+	@mkdir -p $(@D)
 	sudo $(virt_copy_out) -a $< /root/output/bzImage $(@D)
 	sudo chown $(shell id -u):$(shell id -g) $@
 	touch $@
 
-$(ubuntu_initrd): $(ubuntu_base_dimg) | $(o)
+$(ubuntu_initrd): $(ubuntu_base_dimg)
+	@mkdir -p $(@D)
 	sudo $(virt_copy_out) -a $< /root/output/initrd.img $(@D)
 	sudo chown $(shell id -u):$(shell id -g) $@
 	touch $@
 
-$(ubuntu_img_o)config: $(ubuntu_base_dimg) | $(o)
+$(ubuntu_config): $(ubuntu_base_dimg)
+	@mkdir -p $(@D)
 	sudo $(virt_copy_out) -a $< /root/output/config $(@D)
 	sudo chown $(shell id -u):$(shell id -g) $@
 	touch $@
