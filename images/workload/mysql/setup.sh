@@ -124,11 +124,17 @@ for s in server client; do
 done
 set -x
 
+sleep 5
+
+ssh $SERVER_IP shutdown now
+ssh $CLIENT_IP shutdown now
+
 source ~/env/user_openrc
 
-openstack server stop server client
 while ! openstack server show server -c status | grep -q 'SHUTOFF'; do sleep 3; done
 while ! openstack server show client -c status | grep -q 'SHUTOFF'; do sleep 3; done
+
+sleep 10
 
 openstack server migrate server --host compute2 --os-compute-api-version 2.56 --wait
 openstack server migration confirm server

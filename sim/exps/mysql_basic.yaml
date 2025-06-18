@@ -7,8 +7,8 @@ cp: true
 console: true
 interactive: false
 interactive_post_ckp: false
-net_direct: true
-nic: e1000
+net_direct: false
+nic: i40e
 hosts:
   controller:
     cores: 1
