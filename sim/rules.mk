@@ -1,7 +1,7 @@
 simbricks_run_script := $(simbricks_dir)experiments/run.py
 
 SIMBRICKS_OPTIONS := --repo $(simbricks_dir) --workdir $(o) --outdir $(o) --cpdir $(o) --runs 1 --verbose \
-	--parallel --force
+	--parallel
 
 sim_lib_files := $(filter-out %__pycache__/%,$(wildcard $(d)exps/lib/**/*))
 sim_common_deps := $(sim_lib_files) $(simbricks_run_script) $(config_yaml)
@@ -30,5 +30,8 @@ clean-exp-$(1):
 	rm -rf $(o)$(1).log
 endef
 
-$(eval $(call exp_rules,single_host,$(ubuntu_vmlinux) $(ubuntu_initrd) ubuntu-raw-mysql/basic))
-$(eval $(call exp_rules,mysql_basic,$(d)exps/mysql_basic.yaml $(ubuntu_vmlinux) $(ubuntu_initrd) ubuntu-raw-mysql/basic))
+ubuntu_exp_common_deps := $(ubuntu_vmlinux) $(ubuntu_initrd)
+
+$(eval $(call exp_rules,single_host,$(ubuntu_exp_common_deps)))
+$(eval $(call exp_rules,mysql_basic,$(d)exps/mysql_basic.yaml $(ubuntu_exp_common_deps)))
+$(eval $(call exp_rules,mysql_cxl,$(d)exps/mysql_cxl.yaml $(ubuntu_exp_common_deps)))

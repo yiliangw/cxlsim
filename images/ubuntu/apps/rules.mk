@@ -43,12 +43,12 @@ $(ubuntu_dimg_o)$(disk)/disk.raw: $(ubuntu_dimg_o)$(src_disk)/disk.qcow2 $(disk_
 	$(QEMU_IMG) convert -f qcow2 -O raw $$< $$@
 
 .PHONY: qemu-ubuntu-raw-$(disk)
-qemu-ubuntu-raw-$(disk): $(ubuntu_dimg_o)$(disk)/disk.raw $(host_config_deps) $(ubuntu_vmlinux) $(ubuntu_initrd)
+qemu-ubuntu-raw-$(disk): $(host_config_deps) $(ubuntu_vmlinux) $(ubuntu_initrd)
 	sudo -E $(qemu) -machine q35,accel=kvm -cpu host -smp 1 -m 16G \
 	-kernel $(ubuntu_vmlinux) \
 	-append "$(ubuntu_kernel_cmdline)" \
 	-initrd $(ubuntu_initrd) \
-	-drive file=$$(word 1, $$^),media=disk,format=raw,if=ide,index=0 \
+	-drive file=$(ubuntu_dimg_o)$(disk)/disk.raw,media=disk,format=raw,if=ide,index=0 \
 	-fsdev local,id=shared_dev,path=$(workload_o),security_model=none,readonly \
 	-device virtio-9p-pci,fsdev=shared_dev,mount_tag=workload \
 	-netdev bridge,id=net-management,br=$$(call conffget,host,.bridges.management.name) \

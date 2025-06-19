@@ -14,6 +14,7 @@ class CxlSimNodeConfig(NodeConfig):
         super().__init__()
         self.cores = 1
         self.memory = 8192
+        self.cxl_memory = 0
         self.vmlinux_path = None
         """Absolute path to the kernel vmlinux."""
         self.raw_disk_image_path = None
@@ -187,6 +188,7 @@ class CxlSimGem5Host(Gem5Host):
             f'--disk-image={self.node_config.raw_disk_image_path} '
             f'--disk-image={env.cfgtar_path(self)} '
             f'--cpu-type={cpu_type} --mem-size={self.node_config.memory}MB '
+            f'--cxl-mem-sz={self.node_config.cxl_memory} '
             f'--num-cpus={self.node_config.cores} '
             '--mem-type=DDR4_2400_16x4 '
         )
