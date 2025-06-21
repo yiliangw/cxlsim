@@ -16,7 +16,7 @@ hosts:
     management_mac: '52:54:00:11:10:00'
     provider_mac: '52:54:00:11:11:00'
     gateway_mac: '52:54:00:11:12:00'
-    console_port: 10200
+    console_port: 10210
   compute1:
     cores: 1
     memory: 2048
@@ -24,11 +24,11 @@ hosts:
     swap: 8192
     management_mac: '52:54:00:11:10:01'
     provider_mac: '52:54:00:11:11:01'
-    console_port: 10201
+    console_port: 10211
   compute2:
     cores: 1
     memory: 8192
     management_mac: '52:54:00:11:10:02'
     provider_mac: '52:54:00:11:11:02' 
-    console_port: 10202
+    console_port: 10212
 

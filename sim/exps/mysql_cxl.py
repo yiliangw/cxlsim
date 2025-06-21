@@ -101,7 +101,7 @@ done
 mysqlslap -h {self.server_ip} -u testuser --password=testpass       \\
     --concurrency=1 --iterations=1              \\
     --query="SELECT * FROM testtable LIMIT 1;"  \\
-    --create-schema=testdb --engine=innodb
+    --create-schema=testdb
 """
 
 
@@ -229,18 +229,39 @@ until ssh {ip} true; do
     openstack server show {name} -c status
     openstack console log show {name} | tail
     # Sometimes VMs can get stuck here and need reboot
-    if openstack console log show {name} | grep -q "You are in emergency mode"; then
+    if openstack console log show {name} | grep -q -e "You are in emergency mode" -e "Failed to fork off sandboxing environment"; then
         if openstack server show {name} -c status | grep -q ACTIVE; then
             openstack server reboot {name}
         fi
         sleep 180
     fi
+    
     sleep 10
 done
 """
 
 
 class Compute1App(IdleCheckpointApp):
+
+    def __init__(self):
+        super().__init__()
+        self.swap_sz = CONFIG.hosts.compute1.swap
+
+    def prepare_pre_cp(self):
+        cmds = []
+        if self.swap_sz > 0:
+            script = f"""
+fallocate -l {self.swap_sz}M /swapfile
+chmod 600 /swapfile
+mkswap /swapfile
+swapon /swapfile
+
+echo 1 > /proc/sys/vm/overcommit_memory
+echo 150 > /proc/sys/vm/overcommit_ratio
+"""
+            cmds += [script]
+        cmds += super().prepare_pre_cp()
+        return cmds
 
     def run_cmds(self, node) -> tp.List[str]:
         cmds = []
@@ -280,10 +301,10 @@ do
     echo script failed, retrying...
 done
 
-# Notify other nodes to exit            
-for n in compute1 controller; do
-    (printf "m5 exit\\n" | script -q -c "telnet $n" /dev/null) || true
-done
+## Notify other nodes to exit            
+#for n in compute1 controller; do
+#    (printf "m5 exit\\n" | script -q -c "telnet $n" /dev/null) || true
+#done
 """
         cmds.append(script)
         return cmds

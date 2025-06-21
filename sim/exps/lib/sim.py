@@ -12,6 +12,7 @@ class CxlSimNodeConfig(NodeConfig):
 
     def __init__(self):
         super().__init__()
+        self.sim = 'gem5'
         self.cores = 1
         self.memory = 8192
         self.cxl_memory = 0
@@ -40,7 +41,7 @@ class CxlSimNodeConfig(NodeConfig):
         self.pre_cp_tc_latency = '200ms'
 
         self.ckp_unbind_eth = True
-        
+
         self.disable_guestinit = False
         """
         Whether disable the simbricks-guestinit systemd service.
@@ -99,21 +100,29 @@ class CxlSimNodeConfig(NodeConfig):
         cmds = []
         cmds += [f'tc qdisc del dev {dev} root' for dev in self.pre_cp_tc_devs]
         if self.ckp_unbind_eth:
-            cmds += [
-                "nic_pci_addrs=$(lspci -nn -D | grep -i ethernet | awk '{print $1}')",
-                "echo nic_pci_addrs=$nic_pci_addrs",
-                f"for addr in $nic_pci_addrs; do echo $addr > /sys/bus/pci/drivers/{self.eth_driver}/unbind; done",
-            ]
-        cmds += ['sleep 3']
+            script = f"""
+nic_pci_addrs=$(lspci -nn -D | grep -i ethernet | awk '{{print $1}}')
+echo nic_pci_addrs=$nic_pci_addrs
+for addr in $nic_pci_addrs; do 
+    echo $addr > /sys/bus/pci/drivers/{self.eth_driver}/unbind;
+done
+"""
+            cmds += [script]
+        cmds += ['sleep 5']
         return cmds
 
     def prepare_post_cp(self):
         cmds = []
         if self.ckp_unbind_eth:
-            cmds += [
-                "echo nic_pci_addrs=$nic_pci_addrs",
-                f"for addr in $nic_pci_addrs; do echo $addr > /sys/bus/pci/drivers/{self.eth_driver}/bind; done"
-            ]
+            script = f"""
+echo nic_pci_addrs=$nic_pci_addrs
+for addr in $nic_pci_addrs; do
+    until echo $addr > /sys/bus/pci/drivers/{self.eth_driver}/bind; do
+        echo Retrying...            
+    done
+done
+"""
+            cmds += [script]
         return cmds
 
     def config_str(self) -> str:
@@ -331,20 +340,16 @@ class IdleCheckpointApp(CxlSimAppConfig):
         """Commands to run to prepare this application before checkpointing."""
         cmds = super().prepare_pre_cp()
         cmds += ['busybox telnetd -l "/bin/sh"']
-        if self.ssh_control:
-            cmds += [
-                'sleep infinity'
-            ]
-        else:
-            cmds += [
-                f'printf Waiting for {self.CHECKPOINT_BARRIER_FILE}...',
-                f'while ! test -f {self.CHECKPOINT_BARRIER_FILE}; do sleep 30; done;',
-                'sleep 3;',
-            ]
+        cmds += [
+            'busybox telnetd -l "/bin/sh"',
+            f'printf Waiting for {self.CHECKPOINT_BARRIER_FILE}...',
+            f'while ! test -f {self.CHECKPOINT_BARRIER_FILE}; do sleep 30; done;',
+            'sleep 3;',
+        ]
         return cmds
 
     def run_cmds(self, node: NodeConfig) -> tp.List[str]:
         """Commands to run for this application."""
         return [
-            'sleep infinity'
+            'exit 0'
         ]

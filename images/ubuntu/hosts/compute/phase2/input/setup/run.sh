@@ -8,12 +8,6 @@ source common/run_pre.sh
 sudo tee /etc/chrony/chrony.conf < chrony.conf > /dev/null
 sudo systemctl restart chrony
 
-# Bring up ovs interfaces
-sudo cp sbin/setup-ovs-iface.sh /usr/local/sbin
-sudo chmod +x /usr/local/sbin/setup-ovs-iface.sh
-sudo cp services/ovs-iface-up.service /etc/systemd/system
-sudo systemctl enable --now ovs-iface-up
-
 # Configure libvirtd for live migration
 sudo sed -i 's/^#listen_tls.*/listen_tls = 0/' /etc/libvirt/libvirtd.conf
 sudo sed -i 's/^#listen_tcp.*/listen_tcp = 1/' /etc/libvirt/libvirtd.conf

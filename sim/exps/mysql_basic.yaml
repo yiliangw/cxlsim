@@ -1,11 +1,11 @@
-sync: true
+sync: false
 pci_latency: 1000 # ns
 eth_latency: 1000 # ns
 cpu_freq: '4GHz'
 cpu_type: "TimingSimpleCPU"
-cp: true
+cp: false
 console: true
-interactive: false
+interactive: true
 interactive_post_ckp: false
 net_direct: false
 nic: i40e
@@ -19,7 +19,9 @@ hosts:
     console_port: 10200
   compute1:
     cores: 1
-    memory: 8192 
+    memory: 8292
+    cxl_memory: 0
+    swap: 0
     management_mac: '52:54:00:11:10:01'
     provider_mac: '52:54:00:11:11:01'
     console_port: 10201
