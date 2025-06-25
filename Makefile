@@ -20,6 +20,7 @@ define update_current_makefile
 	$(eval b := $(subst /.,,$(B)$(d)))
 endef
 
+PREPARE_ALL :=
 ALL_ALL :=
 CLEAN_ALL := 
 EXTERNAL_CLEAN_ALL := 
@@ -33,9 +34,11 @@ define include_rules
 	$(eval $(call update_current_makefile))
 endef
 
+include arch_arm.mk
+
 .PHONY: help
 help:
-	@echo "Hello Baize :)"
+	@echo "Hello CXLSim"
 
 simbricks_dir := $(d)sim/simbricks/
 
@@ -44,6 +47,22 @@ $(eval $(call include_rules,$(d)configs/rules.mk))
 $(eval $(call include_rules,$(d)utils/rules.mk))
 $(eval $(call include_rules,$(d)images/rules.mk))
 $(eval $(call include_rules,$(d)sim/rules.mk))
+
+.PHONY: install-dependencies
+install-dependencies:
+	sudo apt-get update && sudo apt-get install -y \
+		build-essential libpcap-dev libboost-dev libboost-fiber-dev \
+		libboost-iostreams-dev libboost-coroutine-dev \
+		qemu-system-x86 guestfish cloud-image-utils \
+		scons m4 scons zlib1g zlib1g-dev libprotobuf-dev protobuf-compiler \
+		libprotoc-dev libgoogle-perftools-dev \
+		moreutils \
+		libglib2.0-dev libpixman-1-dev ninja-build \
+		libelf-dev \
+		unzip \
+		qemu-system-aarch64 qemu-efi-aarch64
+	sudo sysctl -w kernel.perf_event_paranoid=0
+	$(MAKE) $(INSTALL_DEPS_ALL)
 
 .PHONY: all
 all: $(ALL_ALL)

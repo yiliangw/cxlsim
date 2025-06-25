@@ -1,4 +1,11 @@
-yq := yq
+YQ_VERSION := 4.44.5
+yq := $(b)yq-$(YQ_ARCH)
+$(yq):
+	@mkdir -p $(@D)
+	wget -O $@ https://github.com/mikefarah/yq/releases/download/v$(YQ_VERSION)/yq_linux_$(YQ_ARCH)
+	chmod +x $@
+
+INSTALL_DEPS_ALL += $(yq)
 
 platform_config_deps := $(b)platform.sed $(d)platform.yaml
 openstack_config_deps :=  $(b)openstack.sed $(d)openstack.yaml
@@ -34,11 +41,11 @@ config_b := $(b)
 
 # Get config value from a specified config file
 define conffget
-$(shell $(yq) eval 'explode(.) | .$(1)$(2)' $(config_d)$(1).yaml)
+$(shell $(yq) eval 'explode(.) | .$(1)$(2)' $(config_d)$(1).yaml 2>/dev/null)
 endef
 
 define confget
-$(shell $(yq) eval 'explode(.) | $(1)' $(config_yaml))
+$(shell $(yq) eval 'explode(.) | $(1)' $(config_yaml) 2>/dev/null)
 endef
 
 # Get config value from a specified config file

@@ -30,7 +30,7 @@ $(ubuntu_dimg_o)gateway_phase1/disk.qcow2: $(ubuntu_base_dimg) $(b)phase1/input.
 	-var "user_password=$(call conffget,platform,.ubuntu.root.password)" \
 	-var "input_tar_src=$(word 2,$^)" \
 	-var "install_script=$(word 3,$^)" \
-	-var "use_backing_file=false" \
+	-var "use_backing_file=true" \
 	$(extend_hcl)
 
 $(b)phase1/input.tar:

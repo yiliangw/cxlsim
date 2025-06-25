@@ -1,0 +1,3 @@
+YQ_ARCH := arm64
+PACKER_ARCH := arm64
+QEMU_ARCH := aarch64

@@ -4,36 +4,26 @@ Baize
 Quick Start
 ===========
 
-Most of the project's dependencies are managed with Docker.
-After building the images, you can access the environment either by working with Visual Studio Code's dev container or by starting the container with an interactive shell.
-
 Prerequisites:
 
-- x86 linux machine with at least 32 CPU cores, 32G memory and 350G free disk space.
+- ARM ubuntu machine with at least 32 CPU cores, 32G memory and 350G free disk space.
 
 - KVM is available.
 
-- `git`, `make` and `docker` (with docker compose plugin) have been installed on the system.
-
 - sudo is enabled for the current user.
+
+- conda is available (https://github.com/conda-forge/miniforge).
 
 Steps:
 
+0. Install dependencies, perform necessary system configuration, etc.
 ```bash
-sudo apt-get update && sudo apt-get install -y \
-    build-essential libpcap-dev libboost-dev libboost-fiber-dev \
-    libboost-iostreams-dev libboost-coroutine-dev \
-    qemu-system-x86 guestfish cloud-image-utils \
-    scons m4 scons zlib1g zlib1g-dev libprotobuf-dev protobuf-compiler \
-    libprotoc-dev libgoogle-perftools-dev \
-    moreutils \
-    libglib2.0-dev libpixman-1-dev ninja-build \
-    libefl-dev
+make install-dependencies
 
-
-sudo sysctl -w kernel.perf_event_paranoid=0
+conda create -n cxlsim python=3.12
+conda activate cxlsim
+pip install -r requirements.txt
 ```
-
 
 1. Initialize submodules:
     ```bash

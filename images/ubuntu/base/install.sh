@@ -112,6 +112,11 @@ done
 # yes "" | make oldconfig
 
 make -j$(nproc)
+
+# Disable flash-kernel post-update script to avoid issues with initramfs
+sudo chmod -x /etc/initramfs/post-update.d/flash-kernel
+sudo chmod -x /etc/kernel/postinst.d/zz-flash-kernel
+
 sudo make modules_install
 sudo make install
 
@@ -123,9 +128,6 @@ update-grub
 
 sudo mkdir /root/output
 sudo cp .config /root/output/config
-sudo cp vmlinux /root/output/vmlinux
-sudo cp arch/x86/boot/bzImage /root/output/bzImage
-sudo cp /boot/initrd.img /root/output/initrd.img
 
 popd
 rm -rf /tmp/input

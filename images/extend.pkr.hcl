@@ -1,6 +1,6 @@
 variable "cpus" {
   type    = number
- default = 4
+  default = 4
 }
 
 variable "memory" {
@@ -55,6 +55,11 @@ variable "user_password" {
   type    = string
 }
 
+variable "qemu_binary" {
+  type    = string
+  default = "/usr/bin/qemu-system-aarch64"
+}
+
 source "qemu" "disk" {
   output_directory = "${var.out_dir}"
   communicator     = "ssh"
@@ -70,12 +75,18 @@ source "qemu" "disk" {
   iso_checksum     = "none"
   use_backing_file = "${var.use_backing_file}"
   net_device       = "virtio-net"
+  qemu_binary      = "${var.qemu_binary}"
   qemuargs         = [
-    ["-machine", "q35,accel=kvm:tcg"],
+    ["-machine", "virt,accel=kvm:tcg"],
     ["-enable-kvm"],
     ["-cpu", "host"],
-    ["-drive", "file=${var.out_dir}/${var.out_name},if=ide,index=0,media=disk,format=qcow2"],
-    ["-drive", "file=${var.input_tar_src},if=ide,index=1,media=disk,format=raw"],
+    ["-drive", "file=/usr/share/AAVMF/AAVMF_CODE.fd,format=raw,if=pflash,readonly=on"],
+    ["-drive", "file=/usr/share/AAVMF/AAVMF_VARS.fd,format=raw,if=pflash,readonly=on"],
+    ["-drive", "file=${var.out_dir}/${var.out_name},format=qcow2,if=none,id=hd0,cache=writeback,discard=ignore,media=disk"],
+    ["-drive", "file=${var.input_tar_src},format=raw,if=none,id=hd1,media=disk"],
+    ["-device", "virtio-scsi-device,id=scsi0"],
+    ["-device", "scsi-hd,drive=hd0,bus=scsi0.0"],
+    ["-device", "scsi-hd,drive=hd1,bus=scsi0.0"],
     ["-boot", "c"],
   ]
   shutdown_command = "sudo shutdown -P now"

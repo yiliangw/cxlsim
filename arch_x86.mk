@@ -1,0 +1,3 @@
+YQ_ARCH := amd64
+PACKER_ARCH := amd64
+QEMU_ARCH := x86_64
